@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Taxonomy · Dictionary Hub</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/sophosds/tokens.css">
+<link rel="stylesheet" href="ds/sophosds/components/bundle.css">
+<script src="ds/sophosds/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:var(--text-brand)}a:hover{color:var(--action-hover)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+.nav-a{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 12px;box-sizing:border-box;border-radius:8px;color:#bbcfde;text-decoration:none;font-size:14px}
+.nav-a:hover{background:rgba(255,255,255,0.06);color:#ffffff}
+.nav-a.on{background:rgba(0,237,255,0.12);color:#00edff;font-weight:600}
+.nav-a:focus-visible{outline:2px solid #00edff;outline-offset:2px}
+table.inv{width:100%;border-collapse:collapse;font-size:14px}
+table.inv th{text-align:left;padding:0 16px;height:44px;background:var(--surface-subtle);border-bottom:1px solid var(--border-strong);font-family:var(--font-display);font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-strong);white-space:nowrap}
+table.inv td{padding:12px 16px;border-bottom:1px solid var(--border-subtle);vertical-align:top;color:var(--text-body)}
+table.inv tbody tr:hover td{background:var(--surface-subtle)}
+table.inv td.num,table.inv th.num{text-align:right}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px}
+button.chip{min-height:36px;cursor:pointer}
+.kpi-n{font-family:var(--font-display);font-size:40px;line-height:1;color:var(--text-strong)}
+.rule{display:flex;gap:10px;font-size:14px;line-height:1.5;color:var(--text-body)}
+.rule::before{content:"";flex:0 0 6px;height:6px;margin-top:8px;border-radius:999px;background:var(--action)}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-wrap: wrap; background: var(--surface-subtle); color: var(--text-body); font-family: var(--font-sans);">
+
+<nav aria-label="Hub navigation" style="flex: 1 1 232px; box-sizing: border-box; padding: 24px 16px; background: var(--dark-blue); display: flex; flex-direction: column; gap: 28px;">
+<div style="display: flex; flex-direction: column; gap: 10px; padding: 0 12px;">
+<x-import component-from-global-scope="SophosDS.Logo" variant="white" height="{{logoH}}"></x-import>
+<span style="font-family: var(--font-subtitle); font-size: 15px; line-height: 1.2; color: #ffffff;">Dictionary Hub</span>
+<span style="font-size: 12px; color: #bbcfde;">Admin console</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px;">
+<a class="nav-a" href="HubInbox.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg><span style="flex: 1 1 auto;">Inbox</span><span style="min-width: 22px; padding: 2px 7px; box-sizing: border-box; border-radius: 999px; background: #00edff; color: #001a47; font-size: 11px; font-weight: 600; text-align: center;">3</span></a>
+<a class="nav-a" href="HubEntry.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>Dictionary</a>
+<a class="nav-a" href="HubEngines.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="16" height="16" x="4" y="4" rx="2"></rect><rect width="6" height="6" x="9" y="9" rx="1"></rect><path d="M15 2v2"></path><path d="M15 20v2"></path><path d="M2 15h2"></path><path d="M2 9h2"></path><path d="M20 15h2"></path><path d="M20 9h2"></path><path d="M9 2v2"></path><path d="M9 20v2"></path></svg>Engines &amp; usage</a>
+<a class="nav-a on" href="HubTaxonomy.dc.html" aria-current="page"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2H2v10l9.29 9.29a1 1 0 0 0 1.41 0l8.59-8.59a1 1 0 0 0 0-1.41Z"></path><circle cx="7" cy="7" r="1.5"></circle></svg>Taxonomy</a>
+<a class="nav-a" href="#clients"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>Clients</a>
+<a class="nav-a" href="#settings"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="21" x2="14" y1="4" y2="4"></line><line x1="10" x2="3" y1="4" y2="4"></line><line x1="21" x2="12" y1="12" y2="12"></line><line x1="8" x2="3" y1="12" y2="12"></line><line x1="21" x2="16" y1="20" y2="20"></line><line x1="12" x2="3" y1="20" y2="20"></line><line x1="14" x2="14" y1="2" y2="6"></line><line x1="8" x2="8" y1="10" y2="14"></line><line x1="16" x2="16" y1="18" y2="22"></line></svg>Settings</a>
+</div>
+</nav>
+
+<div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column;">
+<header style="background: var(--surface-page); border-bottom: 1px solid var(--border-subtle);">
+<div style="max-width: 1200px; margin: 0 auto; padding: 14px 24px; box-sizing: border-box; display: flex; flex-wrap: wrap; align-items: center; gap: 12px;">
+<div style="flex: 1 1 320px; min-width: 0;"><x-import component-from-global-scope="SophosDS.Input" type="search" aria-label="Search the dictionary" placeholder="Search entries, match keys or request IDs"></x-import></div>
+<x-import component-from-global-scope="SophosDS.Badge" color="info" soft="{{yes}}">Published seq 10,482</x-import>
+<x-import component-from-global-scope="SophosDS.Badge" color="medium">Mock · sample data</x-import>
+<span role="img" aria-label="Signed in as hub admin" style="width: 36px; height: 36px; border-radius: 999px; background: var(--sophos-blue); color: #ffffff; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600;">AD</span>
+</div>
+</header>
+
+<main style="width: 100%; max-width: 1200px; margin: 0 auto; padding: 32px 24px 48px; box-sizing: border-box; display: flex; flex-direction: column; gap: 24px;">
+
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px;">
+<div style="display: flex; flex-direction: column; gap: 12px; min-width: 0; flex: 1 1 520px;">
+<x-import component-from-global-scope="SophosDS.Eyebrow" size="sm" tone="brand" tick="{{yes}}">TAXONOMY · VERSION 1</x-import>
+<h1 style="margin: 0; font-family: var(--font-display); font-size: 36px; font-weight: 400; line-height: 1.2; letter-spacing: -0.01em; color: var(--text-strong);">Taxonomy</h1>
+<p style="margin: 0; max-width: 720px; font-size: 14px; line-height: 1.5; color: var(--text-muted);">Two levels. Level 1 follows the Sophos Firewall application categories, plus four hub-only categories. Level 2 is what Jev picks, what clients filter by, and where the default attention level lives.</p>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 12px;">
+<x-import component-from-global-scope="SophosDS.Button" variant="secondary" size="sm">Export CSV</x-import>
+<x-import component-from-global-scope="SophosDS.Button" variant="primary" size="sm" on-click="{{addSub}}">Add subcategory</x-import>
+</div>
+</div>
+
+<sc-if value="{{hasToast}}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="SophosDS.Toast" tone="info" title="{{toastTitle}}" message="{{toastMessage}}" on-close="{{closeToast}}"></x-import>
+</sc-if>
+
+<div style="display: flex; flex-wrap: wrap; gap: 16px;">
+<div style="flex: 1 1 200px; min-width: 0;"><x-import component-from-global-scope="SophosDS.Card"><div style="display: flex; flex-direction: column; gap: 10px; min-height: 110px;"><x-import component-from-global-scope="SophosDS.Eyebrow" size="sm">CATEGORIES</x-import><div class="kpi-n">29</div><p style="margin: 0; font-size: 13px; color: var(--text-muted);">25 named after Sophos Firewall · 4 hub only</p></div></x-import></div>
+<div style="flex: 1 1 200px; min-width: 0;"><x-import component-from-global-scope="SophosDS.Card"><div style="display: flex; flex-direction: column; gap: 10px; min-height: 110px;"><x-import component-from-global-scope="SophosDS.Eyebrow" size="sm">SUBCATEGORIES</x-import><div class="kpi-n">71</div><p style="margin: 0; font-size: 13px; color: var(--text-muted);">Jev chooses among these</p></div></x-import></div>
+<div style="flex: 1 1 260px; min-width: 0;"><x-import component-from-global-scope="SophosDS.Card"><div style="display: flex; flex-direction: column; gap: 10px; min-height: 110px;"><x-import component-from-global-scope="SophosDS.Eyebrow" size="sm">DEFAULT ATTENTION</x-import><div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px;"><span style="display: inline-flex; align-items: baseline; gap: 6px;"><span class="kpi-n" style="font-size: 32px;">38</span><span style="font-size: 13px; color: var(--text-muted);">Info</span></span><span style="display: inline-flex; align-items: baseline; gap: 6px;"><span class="kpi-n" style="font-size: 32px;">27</span><span style="font-size: 13px; color: var(--text-muted);">Review</span></span><span style="display: inline-flex; align-items: baseline; gap: 6px;"><span class="kpi-n" style="font-size: 32px;">6</span><span style="font-size: 13px; color: var(--text-muted);">Not allowed</span></span></div><p style="margin: 0; font-size: 13px; color: var(--text-muted);">Entries inherit it unless overridden</p></div></x-import></div>
+<div style="flex: 1 1 200px; min-width: 0;"><x-import component-from-global-scope="SophosDS.Card"><div style="display: flex; flex-direction: column; gap: 10px; min-height: 110px;"><x-import component-from-global-scope="SophosDS.Eyebrow" size="sm">CLASSIFIED ENTRIES</x-import><div class="kpi-n">{{totalLabel}}</div><p style="margin: 0; font-size: 13px; color: var(--text-muted);">137 titles still pending</p></div></x-import></div>
+</div>
+
+<x-import component-from-global-scope="SophosDS.Card">
+<div style="display: flex; flex-direction: column; gap: 20px;">
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px;">
+<div style="flex: 3 1 320px; min-width: 0;"><x-import component-from-global-scope="SophosDS.Input" type="search" label="Search the taxonomy" placeholder="Subcategory, description or example, such as ngrok" value="{{q}}" on-change="{{onSearch}}"></x-import></div>
+<div style="flex: 1 1 200px; min-width: 0;">
+<x-import component-from-global-scope="SophosDS.Select" label="Default attention" value="{{att}}" on-change="{{onAtt}}">
+<option value="all">Any attention level</option>
+<option value="info">Info</option>
+<option value="review">Review</option>
+<option value="not_allowed">Not allowed</option>
+</x-import>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px;">
+<span id="l1-label" style="font-size: 13px; font-weight: 600; color: var(--text-strong);">Level 1 categories</span>
+<div role="group" aria-labelledby="l1-label" style="display: flex; flex-wrap: wrap; gap: 8px;">
+<sc-for list="{{chips}}" as="c" hint-placeholder-count="29">
+<button type="button" class="{{c.cls}}" aria-pressed="{{c.pressed}}" onClick="{{c.pick}}">{{c.label}}</button>
+</sc-for>
+</div>
+</div>
+</div>
+</x-import>
+
+<x-import component-from-global-scope="SophosDS.Card" padded="{{no}}">
+<div style="display: flex; flex-direction: column;">
+<div style="padding: 20px 24px; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 12px;">
+<div style="display: flex; flex-direction: column; gap: 6px; min-width: 0;">
+<h2 style="margin: 0; font-family: var(--font-subtitle); font-size: 20px; font-weight: 400; line-height: 1.2; color: var(--text-strong);">{{paneTitle}}</h2>
+<span style="font-size: 13px; color: var(--text-muted);">{{paneMeta}}</span>
+</div>
+<sc-if value="{{showAll}}" hint-placeholder-val="{{ false }}">
+<button type="button" onClick="{{backToCat}}" style="min-height: 36px; padding: 0 8px; border: 0; background: none; font: inherit; font-size: 14px; font-weight: 600; color: var(--text-brand); cursor: pointer;">Clear search</button>
+</sc-if>
+</div>
+<div style="overflow-x: auto; border-top: 1px solid var(--border-subtle);">
+<table class="inv" style="min-width: 1000px;">
+<thead><tr><th scope="col">Subcategory</th><th scope="col">Default attention</th><th scope="col">Description and examples</th><th scope="col" class="num">Entries</th><th scope="col"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">Action</span></th></tr></thead>
+<tbody>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="4">
+<tr>
+<td style="width: 260px;"><div style="display: flex; flex-direction: column; gap: 3px;"><sc-if value="{{r.showL1}}" hint-placeholder-val="{{ false }}"><span style="font-size: 12px; color: var(--text-muted);">{{r.l1}}</span></sc-if><span style="font-weight: 600; color: var(--text-strong);">{{r.l2}}</span><span class="mono" style="color: var(--text-muted); overflow-wrap: anywhere;">{{r.slug}}</span></div></td>
+<td style="white-space: nowrap;"><x-import component-from-global-scope="SophosDS.Badge" color="{{r.color}}" soft="{{r.soft}}">{{r.attLabel}}</x-import></td>
+<td><div style="display: flex; flex-direction: column; gap: 4px; max-width: 460px;"><span style="line-height: 1.5;">{{r.desc}}</span><span style="font-size: 12px; line-height: 1.5; color: var(--text-muted);">{{r.examples}}</span></div></td>
+<td class="num" style="font-weight: 600; color: var(--text-strong);">{{r.entries}}</td>
+<td><x-import component-from-global-scope="SophosDS.Button" variant="ghost" size="sm" on-click="{{r.edit}}">Edit</x-import></td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+<sc-if value="{{empty}}" hint-placeholder-val="{{ false }}">
+<div style="padding: 40px 24px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center;">
+<p style="margin: 0; font-family: var(--font-subtitle); font-size: 20px; color: var(--text-strong);">No subcategory matches</p>
+<p style="margin: 0; font-size: 14px; color: var(--text-muted);">Try another word or attention level.</p>
+</div>
+</sc-if>
+</div>
+</div>
+</x-import>
+
+<x-import component-from-global-scope="SophosDS.Card" tone="subtle">
+<div style="display: flex; flex-direction: column; gap: 12px;">
+<x-import component-from-global-scope="SophosDS.Eyebrow" size="sm">HOW CHANGES REACH CLIENTS</x-import>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 10px 32px;">
+<span class="rule">Slugs never change. Renaming a subcategory republishes its entries under the same slug, so client filters and saved searches keep working.</span>
+<span class="rule">Changing a default attention level republishes every entry that inherits it. Entries with their own override keep it.</span>
+<span class="rule">Jev receives the options as “Level 1 / Level 2: description”. If it cannot pick a subcategory, it picks a level 1 first and the entry goes to review.</span>
+<span class="rule">Automatic mode only publishes when both the current and the proposed subcategory are Info and the probability is 0.95 or more.</span>
+</div>
+</div>
+</x-import>
+
+<p style="margin: 0; font-size: 12px; line-height: 1.5; color: var(--text-muted);">Categories, subcategories, attention defaults and examples are the proposed taxonomy. Entry counts are sample data.</p>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1680}}'>
+/* level 1, level 2, slug, default attention, Sophos Firewall category ('' = hub only), description, examples, entries (sample) */
+var TX_ROWS = [
+  ["Remote access", "Remote desktop and support", "remote-access/remote-desktop-and-support", "review", "Remote access", "Tools that let someone see and control this computer or another one over the network, attended or unattended.", "AnyDesk, TeamViewer, RustDesk, Chrome Remote Desktop, Splashtop, Parsec", 64],
+  ["Remote access", "Remote management agents (RMM)", "remote-access/remote-management-agents-rmm", "review", "Remote access", "Agents of IT management platforms that run scripts, install software and open remote sessions.", "NinjaOne, Datto RMM, Atera, ConnectWise Automate", 22],
+  ["Remote access", "VNC and RDP servers", "remote-access/vnc-and-rdp-servers", "review", "Remote access", "Software that accepts incoming remote desktop connections on this computer.", "RealVNC Server, TightVNC, UltraVNC, RDP Wrapper", 17],
+  ["Remote access", "SSH and terminal clients", "remote-access/ssh-and-terminal-clients", "info", "Remote access", "Clients used to open shells on other systems.", "PuTTY, MobaXterm, Termius, Windows Terminal", 31],
+  ["Proxy and tunnel", "Corporate VPN clients", "proxy-and-tunnel/corporate-vpn-clients", "info", "Proxy and tunnel", "VPN clients usually deployed by the organization to reach internal networks.", "FortiClient VPN, Cisco Secure Client, GlobalProtect, OpenVPN Connect", 46],
+  ["Proxy and tunnel", "Consumer VPN and proxy services", "proxy-and-tunnel/consumer-vpn-and-proxy-services", "review", "Proxy and tunnel", "Personal VPN or proxy apps and browser extensions that route traffic through a third-party service.", "Urban VPN Proxy, Hola VPN, Hotspot Shield, NordVPN, Proton VPN", 118],
+  ["Proxy and tunnel", "Tunnels and mesh networks", "proxy-and-tunnel/tunnels-and-mesh-networks", "review", "Proxy and tunnel", "Tools that expose local services to the internet or join the computer to an overlay network.", "ngrok, cloudflared, Tailscale, ZeroTier, frp", 19],
+  ["Proxy and tunnel", "Anonymizers", "proxy-and-tunnel/anonymizers", "not_allowed", "Proxy and tunnel", "Software built to hide the user's identity or bypass network controls.", "Tor Browser, Psiphon, Ultrasurf", 9],
+  ["File transfer", "FTP and SFTP clients", "file-transfer/ftp-and-sftp-clients", "info", "File transfer", "Clients for moving files to and from servers.", "FileZilla, WinSCP, Cyberduck", 12],
+  ["File transfer", "Direct file sharing", "file-transfer/direct-file-sharing", "review", "File transfer", "Apps that send files between devices or people outside managed storage.", "LocalSend, Send Anywhere, WeTransfer", 8],
+  ["Storage and backup", "Cloud storage sync", "storage-and-backup/cloud-storage-sync", "info", "Storage and backup", "Desktop clients and extensions that sync files with a cloud drive.", "OneDrive, Google Drive, Dropbox, Box, Application Launcher For Drive", 4],
+  ["Storage and backup", "Backup software", "storage-and-backup/backup-software", "info", "Storage and backup", "Software that copies data to local or remote backup targets.", "Veeam Agent, Acronis Cyber Protect, Backblaze, Macrium Reflect", 41],
+  ["P2P", "Torrent clients", "p2p/torrent-clients", "not_allowed", "P2P", "BitTorrent clients and torrent search tools.", "qBittorrent, µTorrent, BitTorrent, Transmission", 37],
+  ["P2P", "Other P2P networks", "p2p/other-p2p-networks", "not_allowed", "P2P", "File sharing over other peer-to-peer networks.", "eMule, Soulseek, Shareaza", 33],
+  ["Download applications", "Download managers", "download-applications/download-managers", "review", "Download applications", "Tools that accelerate or schedule downloads outside the browser.", "Internet Download Manager, JDownloader, Free Download Manager", 29],
+  ["Download applications", "Media downloaders", "download-applications/media-downloaders", "review", "Download applications", "Tools that save video or audio from streaming sites.", "yt-dlp, 4K Video Downloader, Video DownloadHelper", 25],
+  ["Conferencing", "Video meetings", "conferencing/video-meetings", "info", "Conferencing", "Meeting and webinar clients and their browser extensions.", "Zoom Workplace, Microsoft Teams, Cisco Webex, Cisco Webex Extension", 21],
+  ["Instant messenger", "Team chat", "instant-messenger/team-chat", "info", "Instant messenger", "Workplace messaging platforms.", "Slack, Mattermost, Rocket.Chat", 17],
+  ["Instant messenger", "Consumer messaging", "instant-messenger/consumer-messaging", "review", "Instant messenger", "Personal messaging apps on a work computer.", "WhatsApp, Telegram, Signal, Discord", 13],
+  ["VoIP", "Softphones", "voip/softphones", "info", "VoIP", "Telephony clients that place or receive calls over IP.", "3CX, Zoiper, MicroSIP", 9],
+  ["Desktop mail", "Mail clients", "desktop-mail/mail-clients", "info", "Desktop mail", "Desktop email clients and their add-ins.", "Outlook, Thunderbird, eM Client, Mailbird", 5],
+  ["Web mail", "Web mail helpers", "web-mail/web-mail-helpers", "info", "Web mail", "Browser extensions that add features to web mail.", "Boomerang for Gmail, Mailtrack", 42],
+  ["Streaming media", "Video streaming", "streaming-media/video-streaming", "info", "Streaming media", "Players and extensions for video streaming services, including DRM components.", "Netflix, Player do NOW NET Claro, Disney+", 52],
+  ["Streaming media", "Music and podcasts", "streaming-media/music-and-podcasts", "info", "Streaming media", "Music and podcast streaming clients.", "Spotify, Deezer, Apple Music", 34],
+  ["Streaming media", "Media players and casting", "streaming-media/media-players-and-casting", "info", "Streaming media", "Local media players and casting receivers.", "VLC, PotPlayer, AllCast Receiver", 30],
+  ["Social networking", "Social network apps and extensions", "social-networking/social-network-apps-and-extensions", "info", "Social networking", "Apps and extensions for social networks.", "Facebook, Instagram, LinkedIn, X", 26],
+  ["Gaming", "Game launchers and stores", "gaming/game-launchers-and-stores", "review", "Gaming", "Platforms that install and run games.", "Steam, Epic Games Launcher, Battle.net, EA app", 22],
+  ["Gaming", "Games", "gaming/games", "review", "Gaming", "Installed games and browser games.", "Minecraft, Roblox, League of Legends", 18],
+  ["E-commerce", "Shopping assistants", "e-commerce/shopping-assistants", "review", "E-commerce", "Coupon, cashback, price tracking and wish list extensions; many read every page the user visits.", "Add to Amazon Wish List, Honey, Keepa", 14],
+  ["Generative AI", "AI assistants", "generative-ai/ai-assistants", "review", "Generative AI", "Chat assistants as desktop apps or browser extensions.", "ChatGPT, Claude, Microsoft Copilot, Gemini", 10],
+  ["Generative AI", "AI browser extensions", "generative-ai/ai-browser-extensions", "review", "Generative AI", "Sidebars, writers and summarizers that read the content of the pages the user visits.", "Monica, Merlin, Sider", 6],
+  ["Generative AI", "AI coding assistants", "generative-ai/ai-coding-assistants", "review", "Generative AI", "Code completion and coding agents inside IDEs and terminals.", "GitHub Copilot, Cursor, Codeium", 43],
+  ["Generative AI", "Local AI runtimes", "generative-ai/local-ai-runtimes", "review", "Generative AI", "Tools that download and run models on the computer.", "Ollama, LM Studio, GPT4All", 39],
+  ["General business", "Office and documents", "general-business/office-and-documents", "info", "General business", "Office suites, PDF tools and document viewers.", "Microsoft 365 Apps, Adobe Acrobat, LibreOffice, Google Docs Offline", 212],
+  ["General business", "Notes and knowledge", "general-business/notes-and-knowledge", "info", "General business", "Note taking, wikis and knowledge tools.", "Notion, Evernote Web Clipper, OneNote, Obsidian", 96],
+  ["General business", "Design and creative", "general-business/design-and-creative", "info", "General business", "Graphics, video editing and design tools.", "Adobe Creative Cloud, Figma, Canva, DaVinci Resolve", 27],
+  ["General business", "Screen capture and recording", "general-business/screen-capture-and-recording", "review", "General business", "Tools that record or capture the screen.", "Awesome Screen Recorder & Screenshot, OBS Studio, ShareX, Loom, Snagit", 141],
+  ["General business", "Business applications", "general-business/business-applications", "info", "General business", "ERP, CRM, accounting and other line-of-business clients.", "SAP GUI, TOTVS, Salesforce, Power BI Desktop", 19],
+  ["General business", "Compression and file utilities", "general-business/compression-and-file-utilities", "info", "General business", "Archive and file management utilities.", "7-Zip, WinRAR, Everything", 15],
+  ["General internet", "Web browsers", "general-internet/web-browsers", "info", "General internet", "Web browsers and their release channels.", "Google Chrome, Microsoft Edge, Firefox, Brave, Opera", 38],
+  ["General internet", "Browser utilities", "general-internet/browser-utilities", "info", "General internet", "New tab pages, translators, ad blockers and other extensions that change pages.", "Momentum, uBlock Origin, Google Translate, Dark Reader", 604],
+  ["General internet", "Learning", "general-internet/learning", "info", "General internet", "Education and language learning apps.", "Duolingo on the Web, Coursera, Khan Academy", 3],
+  ["General internet", "Legacy Chrome apps", "general-internet/legacy-chrome-apps", "review", "General internet", "Deprecated Chrome apps kept from old browser profiles.", "Docs, Sheets, Slides, Gmail, YouTube, Google Drive (legacy apps)", 27],
+  ["Software update", "Updaters", "software-update/updaters", "info", "Software update", "Background services that update other software.", "Google Update, Microsoft Edge Update, Adobe Updater, Java Update Scheduler", 36],
+  ["Infrastructure", "Virtualization and containers", "infrastructure/virtualization-and-containers", "review", "Infrastructure", "Hypervisors, containers and Linux subsystems that run isolated environments.", "VirtualBox, VMware Workstation, Docker Desktop, WSL", 32],
+  ["Infrastructure", "Admin tools", "infrastructure/admin-tools", "info", "Infrastructure", "Tools used to administer systems and inspect networks.", "Wireshark, RSAT, Sysinternals, mRemoteNG", 28],
+  ["Network services", "Web and app servers", "network-services/web-and-app-servers", "review", "Network services", "Web servers and application runtimes that accept connections.", "IIS, Apache httpd, nginx, Tomcat, php-fpm", 24],
+  ["Network services", "Mail servers", "network-services/mail-servers", "review", "Network services", "Software that sends or receives mail for other users or systems.", "Exchange Server, hMailServer, Postfix, Exim, Dovecot", 20],
+  ["Network services", "Database servers", "network-services/database-servers", "review", "Network services", "Database engines running on the computer.", "SQL Server, MySQL, PostgreSQL, MongoDB, Redis", 16],
+  ["Network services", "Local development stacks", "network-services/local-development-stacks", "review", "Network services", "Bundled web stacks for local development.", "XAMPP, WampServer, Laragon, MAMP", 12],
+  ["Industrial control system", "ICS engineering and HMI software", "industrial-control-system/ics-engineering-and-hmi-software", "review", "Industrial control system", "Software that programs or monitors PLCs and industrial equipment.", "Siemens TIA Portal, Rockwell Studio 5000, Schneider EcoStruxure", 8],
+  ["Mobile applications", "Phone companions", "mobile-applications/phone-companions", "info", "Mobile applications", "Apps that connect phones to the computer.", "Phone Link, iTunes, Android File Transfer, Samsung Smart Switch", 4],
+  ["System applications", "OS components and runtimes", "system-applications/os-components-and-runtimes", "info", "System applications", "Operating system features, redistributables and runtimes installed as dependencies.", "Microsoft Visual C++ Redistributable, .NET Runtime, Java Runtime, WebView2", 388],
+  ["System applications", "Drivers and hardware utilities", "system-applications/drivers-and-hardware-utilities", "info", "System applications", "Drivers and vendor utilities for devices.", "Realtek Audio, Intel Graphics, Logi Options+, NVIDIA App", 37],
+  ["System applications", "OEM utilities", "system-applications/oem-utilities", "info", "System applications", "Manufacturer tools preinstalled on the computer.", "Dell Command Update, HP Support Assistant, Lenovo Vantage", 33],
+  ["System applications", "Browser components", "system-applications/browser-components", "info", "System applications", "Components that ship with the browser or its store.", "Chrome Web Store Payments, Chrome Media Router, Edge relevant text changes", 73],
+  ["Sophos applications", "Sophos agents and tools", "sophos-applications/sophos-agents-and-tools", "info", "Sophos applications", "Sophos endpoint, ZTNA, VPN and management software.", "Sophos Endpoint Agent, Sophos Connect, Sophos ZTNA client", 25],
+  ["Security and identity", "Antivirus and EDR (third party)", "security-and-identity/antivirus-and-edr-third-party", "review", "", "Security agents from other vendors; they may conflict with the Sophos agent.", "Malwarebytes, ESET, Kaspersky, CrowdStrike Falcon", 21],
+  ["Security and identity", "Password managers", "security-and-identity/password-managers", "info", "", "Vaults that store credentials, as apps or browser extensions.", "Keeper, Bitwarden, 1Password, LastPass", 41],
+  ["Security and identity", "Authenticators and MFA", "security-and-identity/authenticators-and-mfa", "info", "", "One-time password and passkey tools.", "Microsoft Authenticator, Authy, YubiKey Manager", 13],
+  ["Security and identity", "Encryption tools", "security-and-identity/encryption-tools", "review", "", "Disk, file or container encryption outside managed policy.", "VeraCrypt, AxCrypt, Cryptomator", 9],
+  ["Security and identity", "Security testing tools", "security-and-identity/security-testing-tools", "review", "", "Scanners, sniffers and offensive tools; legitimate for security teams and common in attacks.", "Nmap, Advanced IP Scanner, Burp Suite, Metasploit", 5],
+  ["Developer tools", "IDEs and editors", "developer-tools/ides-and-editors", "info", "", "Code editors and integrated development environments.", "Visual Studio Code, Visual Studio, IntelliJ IDEA, Notepad++", 42],
+  ["Developer tools", "Language runtimes and SDKs", "developer-tools/language-runtimes-and-sdks", "info", "", "Compilers, interpreters and SDKs.", "Node.js, Python, JDK, PHP, Go", 38],
+  ["Developer tools", "CLIs and version control", "developer-tools/clis-and-version-control", "info", "", "Command-line tools, source control and cloud CLIs.", "Git, GitHub CLI, AWS CLI, Azure CLI", 34],
+  ["Developer tools", "Libraries and packages", "developer-tools/libraries-and-packages", "info", "", "Packages installed by npm, pip, Homebrew or Chocolatey that are libraries rather than apps.", "typescript, requests, lodash", 1634],
+  ["Developer tools", "IDE extensions", "developer-tools/ide-extensions", "info", "", "Extensions for code editors that are not AI assistants.", "ESLint, Prettier, Python for VS Code", 26],
+  ["Unwanted software", "Adware and browser hijackers", "unwanted-software/adware-and-browser-hijackers", "not_allowed", "", "Software that injects ads, changes the search engine or tracks browsing without clear consent.", "Search hijacker extensions, bundled toolbars", 22],
+  ["Unwanted software", "Cracks and license bypass", "unwanted-software/cracks-and-license-bypass", "not_allowed", "", "Keygens, activators and patched installers.", "KMS activators, keygens", 18],
+  ["Unwanted software", "Crypto miners", "unwanted-software/crypto-miners", "not_allowed", "", "Software that mines cryptocurrency on the computer.", "XMRig, NiceHash Miner", 14],
+  ["Other", "Other", "other/other", "info", "", "Software that fits no other category; use only when nothing else applies.", "", 61]
+];
+var TX_L1 = ["Remote access", "Proxy and tunnel", "File transfer", "Storage and backup", "P2P", "Download applications", "Conferencing", "Instant messenger", "VoIP", "Desktop mail", "Web mail", "Streaming media", "Social networking", "Gaming", "E-commerce", "Generative AI", "General business", "General internet", "Software update", "Infrastructure", "Network services", "Industrial control system", "Mobile applications", "System applications", "Sophos applications", "Security and identity", "Developer tools", "Unwanted software", "Other"];
+var TX_ATT = { info: ['blue', 'Info', true], review: ['high', 'Review', false], not_allowed: ['critical', 'Not allowed', false] };
+var TX_TOTAL = 4812;
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { l1: 'Remote access', q: '', att: 'all', toast: null };
+  }
+  renderVals() {
+    var self = this, s = this.state;
+    var q = s.q.trim().toLowerCase();
+    var searching = !!q || s.att !== 'all';
+    var list = TX_ROWS.filter(function (r) {
+      if (!searching) return r[0] === s.l1;
+      if (s.att !== 'all' && r[3] !== s.att) return false;
+      if (q && (r[0] + ' ' + r[1] + ' ' + r[5] + ' ' + r[6]).toLowerCase().indexOf(q) === -1) return false;
+      return true;
+    });
+    var rows = list.map(function (r) {
+      var a = TX_ATT[r[3]];
+      return {
+        l1: r[0], l2: r[1], slug: r[2], desc: r[5], examples: 'Examples: ' + r[6], entries: r[7].toLocaleString('en-US'),
+        color: a[0], attLabel: a[1], soft: a[2], showL1: searching,
+        edit: function () { self.setState({ toast: { title: 'Editing ' + r[0] + ' / ' + r[1], message: 'Changes create a draft taxonomy revision. Nothing reaches clients until you publish it.' } }); }
+      };
+    });
+    var sel = TX_ROWS.filter(function (r) { return r[0] === s.l1; });
+    var fw = sel.length ? sel[0][4] : '';
+    var selEntries = sel.reduce(function (n, r) { return n + r[7]; }, 0);
+    var chips = TX_L1.map(function (c) {
+      var n = TX_ROWS.filter(function (r) { return r[0] === c; }).length;
+      var on = !searching && s.l1 === c;
+      return { label: c + ' · ' + n, pressed: on ? 'true' : 'false', cls: 'chip sds-tag' + (on ? ' sds-tag--active' : ''), pick: function () { self.setState({ l1: c, q: '', att: 'all' }); } };
+    });
+    return {
+      yes: true, no: false, logoH: 22,
+      totalLabel: TX_TOTAL.toLocaleString('en-US'),
+      q: s.q,
+      onSearch: function (e) { self.setState({ q: e.target.value }); },
+      att: s.att,
+      onAtt: function (e) { self.setState({ att: e.target.value }); },
+      chips: chips,
+      showAll: searching,
+      backToCat: function () { self.setState({ q: '', att: 'all' }); },
+      paneTitle: searching ? rows.length + (rows.length === 1 ? ' subcategory matches' : ' subcategories match') : s.l1,
+      paneMeta: searching ? 'Across all 29 categories' : (fw ? 'Sophos Firewall category: ' + fw : 'Hub-only category, no Sophos Firewall equivalent') + ' · ' + sel.length + (sel.length === 1 ? ' subcategory · ' : ' subcategories · ') + selEntries.toLocaleString('en-US') + ' entries',
+      rows: rows,
+      empty: rows.length === 0,
+      addSub: function () { self.setState({ toast: { title: 'New subcategory under ' + s.l1, message: 'Set a name, a default attention level and a description Jev can use. It becomes a draft taxonomy revision.' } }); },
+      hasToast: !!s.toast,
+      toastTitle: s.toast ? s.toast.title : '',
+      toastMessage: s.toast ? s.toast.message : '',
+      closeToast: function () { self.setState({ toast: null }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

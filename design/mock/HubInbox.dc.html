@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Inbox · Dictionary Hub</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/sophosds/tokens.css">
+<link rel="stylesheet" href="ds/sophosds/components/bundle.css">
+<script src="ds/sophosds/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:var(--text-brand)}a:hover{color:var(--action-hover)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+.nav-a{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 12px;box-sizing:border-box;border-radius:8px;color:#bbcfde;text-decoration:none;font-size:14px}
+.nav-a:hover{background:rgba(255,255,255,0.06);color:#ffffff}
+.nav-a.on{background:rgba(0,237,255,0.12);color:#00edff;font-weight:600}
+.nav-a:focus-visible{outline:2px solid #00edff;outline-offset:2px}
+table.inv{width:100%;border-collapse:collapse;font-size:14px}
+table.inv th{text-align:left;padding:0 16px;height:44px;background:var(--surface-subtle);border-bottom:1px solid var(--border-strong);font-family:var(--font-display);font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-strong);white-space:nowrap}
+table.inv td{padding:12px 16px;border-bottom:1px solid var(--border-subtle);vertical-align:middle;color:var(--text-body)}
+table.inv tbody tr:hover td{background:var(--surface-subtle)}
+table.inv td.num,table.inv th.num{text-align:right}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px}
+.cat{display:flex;flex-direction:column;gap:2px;max-width:240px}
+.cat .l1{font-size:12px;color:var(--text-muted)}
+.cat .l2{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--text-strong)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-wrap: wrap; background: var(--surface-subtle); color: var(--text-body); font-family: var(--font-sans);">
+
+<nav aria-label="Hub navigation" style="flex: 1 1 232px; box-sizing: border-box; padding: 24px 16px; background: var(--dark-blue); display: flex; flex-direction: column; gap: 28px;">
+<div style="display: flex; flex-direction: column; gap: 10px; padding: 0 12px;">
+<x-import component-from-global-scope="SophosDS.Logo" variant="white" height="{{logoH}}"></x-import>
+<span style="font-family: var(--font-subtitle); font-size: 15px; line-height: 1.2; color: #ffffff;">Dictionary Hub</span>
+<span style="font-size: 12px; color: #bbcfde;">Admin console</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px;">
+<a class="nav-a on" href="HubInbox.dc.html" aria-current="page"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg><span style="flex: 1 1 auto;">Inbox</span><span style="min-width: 22px; padding: 2px 7px; box-sizing: border-box; border-radius: 999px; background: #00edff; color: #001a47; font-size: 11px; font-weight: 600; text-align: center;">3</span></a>
+<a class="nav-a" href="HubEntry.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>Dictionary</a>
+<a class="nav-a" href="HubEngines.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="16" height="16" x="4" y="4" rx="2"></rect><rect width="6" height="6" x="9" y="9" rx="1"></rect><path d="M15 2v2"></path><path d="M15 20v2"></path><path d="M2 15h2"></path><path d="M2 9h2"></path><path d="M20 15h2"></path><path d="M20 9h2"></path><path d="M9 2v2"></path><path d="M9 20v2"></path></svg>Engines &amp; usage</a>
+<a class="nav-a" href="HubTaxonomy.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2H2v10l9.29 9.29a1 1 0 0 0 1.41 0l8.59-8.59a1 1 0 0 0 0-1.41Z"></path><circle cx="7" cy="7" r="1.5"></circle></svg>Taxonomy</a>
+<a class="nav-a" href="#clients"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>Clients</a>
+<a class="nav-a" href="#settings"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="21" x2="14" y1="4" y2="4"></line><line x1="10" x2="3" y1="4" y2="4"></line><line x1="21" x2="12" y1="12" y2="12"></line><line x1="8" x2="3" y1="12" y2="12"></line><line x1="21" x2="16" y1="20" y2="20"></line><line x1="12" x2="3" y1="20" y2="20"></line><line x1="14" x2="14" y1="2" y2="6"></line><line x1="8" x2="8" y1="10" y2="14"></line><line x1="16" x2="16" y1="18" y2="22"></line></svg>Settings</a>
+</div>
+</nav>
+
+<div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column;">
+<header style="background: var(--surface-page); border-bottom: 1px solid var(--border-subtle);">
+<div style="max-width: 1200px; margin: 0 auto; padding: 14px 24px; box-sizing: border-box; display: flex; flex-wrap: wrap; align-items: center; gap: 12px;">
+<div style="flex: 1 1 320px; min-width: 0;"><x-import component-from-global-scope="SophosDS.Input" type="search" aria-label="Search the dictionary" placeholder="Search entries, match keys or request IDs"></x-import></div>
+<x-import component-from-global-scope="SophosDS.Badge" color="info" soft="{{yes}}">Published seq 10,482</x-import>
+<x-import component-from-global-scope="SophosDS.Badge" color="medium">Mock · sample data</x-import>
+<button type="button" aria-label="Notifications, 3 unread" style="position: relative; width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 999px; background: var(--surface-subtle); color: var(--text-strong); cursor: pointer;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg><span aria-hidden="true" style="position: absolute; top: 6px; right: 6px; min-width: 16px; height: 16px; padding: 0 4px; box-sizing: border-box; border-radius: 999px; background: var(--alert-red); color: #ffffff; font-size: 10px; font-weight: 600; line-height: 16px; text-align: center;">3</span></button>
+<span role="img" aria-label="Signed in as hub admin" style="width: 36px; height: 36px; border-radius: 999px; background: var(--sophos-blue); color: #ffffff; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600;">AD</span>
+</div>
+</header>
+
+<main style="width: 100%; max-width: 1200px; margin: 0 auto; padding: 32px 24px 48px; box-sizing: border-box; display: flex; flex-direction: column; gap: 24px;">
+
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px;">
+<div style="display: flex; flex-direction: column; gap: 12px; min-width: 0; flex: 1 1 520px;">
+<x-import component-from-global-scope="SophosDS.Eyebrow" size="sm" tone="brand" tick="{{yes}}">DICTIONARY HUB</x-import>
+<h1 style="margin: 0; font-family: var(--font-display); font-size: 36px; font-weight: 400; line-height: 1.2; letter-spacing: -0.01em; color: var(--text-strong);">Inbox</h1>
+<p style="margin: 0; font-size: 14px; line-height: 1.5; color: var(--text-muted);">Nothing here reaches clients until you publish it. Requests and submissions are suggestions from client apps.</p>
+</div>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 16px;">
+<div style="flex: 1 1 200px; min-width: 0;"><x-import component-from-global-scope="SophosDS.Card"><div style="display: flex; flex-direction: column; gap: 10px; min-height: 110px;"><x-import component-from-global-scope="SophosDS.Eyebrow" size="sm">PUBLISHED ENTRIES</x-import><div style="font-family: var(--font-display); font-size: 40px; line-height: 1; color: var(--text-strong);">4,812</div><p style="margin: 0; font-size: 13px; line-height: 1.5; color: var(--text-muted);">3,960 reviewed by an admin · 852 by rule</p></div></x-import></div>
+<div style="flex: 1 1 200px; min-width: 0;"><x-import component-from-global-scope="SophosDS.Card"><div style="display: flex; flex-direction: column; gap: 10px; min-height: 110px;"><x-import component-from-global-scope="SophosDS.Eyebrow" size="sm">OPEN REQUESTS</x-import><div style="font-family: var(--font-display); font-size: 40px; line-height: 1; color: var(--text-strong);">3</div><p style="margin: 0; font-size: 13px; line-height: 1.5; color: var(--text-muted);">From 3 clients · oldest 2 days</p></div></x-import></div>
+<div style="flex: 1 1 200px; min-width: 0;"><x-import component-from-global-scope="SophosDS.Card"><div style="display: flex; flex-direction: column; gap: 10px; min-height: 110px;"><x-import component-from-global-scope="SophosDS.Eyebrow" size="sm">NEW TITLES</x-import><div style="font-family: var(--font-display); font-size: 40px; line-height: 1; color: var(--text-strong);">137</div><p style="margin: 0; font-size: 13px; line-height: 1.5; color: var(--text-muted);">Reported by 6 clients this week</p></div></x-import></div>
+<div style="flex: 1 1 200px; min-width: 0;"><x-import component-from-global-scope="SophosDS.Card"><div style="display: flex; flex-direction: column; gap: 10px; min-height: 110px;"><x-import component-from-global-scope="SophosDS.Eyebrow" size="sm">ACTIVE CLIENTS</x-import><div style="font-family: var(--font-display); font-size: 40px; line-height: 1; color: var(--text-strong);">6</div><p style="margin: 0; font-size: 13px; line-height: 1.5; color: var(--text-muted);">5 synced in the last 6 hours</p></div></x-import></div>
+</div>
+
+<sc-if value="{{hasToast}}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="SophosDS.Toast" tone="success" title="{{toastTitle}}" message="{{toastMessage}}" on-close="{{closeToast}}"></x-import>
+</sc-if>
+
+<x-import component-from-global-scope="SophosDS.Card" padded="{{no}}">
+<div style="display: flex; flex-direction: column;">
+<div style="padding: 20px 24px 0;"><x-import component-from-global-scope="SophosDS.Tabs" items="{{tabs}}" value="{{tab}}" on-change="{{onTab}}"></x-import></div>
+
+<sc-if value="{{isRequests}}" hint-placeholder-val="{{ true }}">
+<div style="overflow-x: auto; margin-top: 16px; border-top: 1px solid var(--border-subtle);">
+<table class="inv" style="min-width: 1180px;">
+<thead><tr><th scope="col">Request</th><th scope="col">Title</th><th scope="col">Current → suggested</th><th scope="col">Reason</th><th scope="col">Clients</th><th scope="col">Age</th><th scope="col"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">Action</span></th></tr></thead>
+<tbody>
+<tr>
+<td class="mono" style="font-size: 13px; font-weight: 600; color: var(--text-strong);">REQ-0042</td>
+<td><div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-weight: 600; color: var(--text-strong);">Player do NOW NET Claro</span><span style="font-size: 12px; color: var(--text-muted);">Chrome extension · npflpmeannakjekldamofnldpiefjmmi</span></div></td>
+<td><div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px;"><div class="cat"><span class="l1">Other</span><span class="l2">Other</span></div><span aria-hidden="true" style="color: var(--text-muted);">→</span><span class="sr">changed to</span><div class="cat"><span class="l1">Streaming media</span><span class="l2">Video streaming</span></div></div></td>
+<td style="max-width: 280px;">DRM component of the NOW streaming player, not unknown software.</td>
+<td>Acme Brasil <span style="color: var(--text-muted);">+1</span></td>
+<td style="white-space: nowrap;">2 h</td>
+<td><a href="HubEntry.dc.html" style="font-weight: 600;">Review</a></td>
+</tr>
+<tr>
+<td class="mono" style="font-size: 13px; font-weight: 600; color: var(--text-strong);">REQ-0041</td>
+<td><div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-weight: 600; color: var(--text-strong);">Urban VPN Proxy</span><span style="font-size: 12px; color: var(--text-muted);">Chrome extension</span></div></td>
+<td><div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px;"><div class="cat"><span class="l1">Proxy and tunnel</span><span class="l2">Consumer VPN and proxy services <x-import component-from-global-scope="SophosDS.Badge" color="high" soft="{{yes}}">Review</x-import></span></div><span aria-hidden="true" style="color: var(--text-muted);">→</span><span class="sr">changed to</span><div class="cat"><span class="l1">Same subcategory, entry override</span><span class="l2">Attention <x-import component-from-global-scope="SophosDS.Badge" color="critical" soft="{{yes}}">Not allowed</x-import></span></div></div></td>
+<td style="max-width: 280px;">Free VPN extension; our policy blocks it on corporate browsers.</td>
+<td>Beta Logística</td>
+<td style="white-space: nowrap;">1 day</td>
+<td><a href="HubEntry.dc.html" style="font-weight: 600;">Review</a></td>
+</tr>
+<tr>
+<td class="mono" style="font-size: 13px; font-weight: 600; color: var(--text-strong);">REQ-0039</td>
+<td><div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-weight: 600; color: var(--text-strong);">Chrome Media Router</span><span style="font-size: 12px; color: var(--text-muted);">Chrome extension · pkedcjkdefgpdelpbcmbmeomcjbeemfm</span></div></td>
+<td><div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px;"><div class="cat"><span class="l1">Other</span><span class="l2">Other</span></div><span aria-hidden="true" style="color: var(--text-muted);">→</span><span class="sr">changed to</span><div class="cat"><span class="l1">System applications</span><span class="l2">Browser components</span></div></div></td>
+<td style="max-width: 280px;">Built-in Chrome component; it should not count as user software.</td>
+<td>Gamma Saúde</td>
+<td style="white-space: nowrap;">2 days</td>
+<td><a href="HubEntry.dc.html" style="font-weight: 600;">Review</a></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p style="margin: 0; padding: 16px 24px; font-size: 13px; line-height: 1.5; color: var(--text-muted);">Requests for the same entry are grouped. Clients see your decision and note on their next sync.</p>
+</sc-if>
+
+<sc-if value="{{isTitles}}" hint-placeholder-val="{{ false }}">
+<div style="padding: 16px 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;">
+<span style="font-size: 14px; color: var(--text-muted);">Sorted by the number of clients that reported the title. {{selectedText}}</span>
+<x-import component-from-global-scope="SophosDS.Button" variant="primary" size="sm" disabled="{{runDisabled}}" on-click="{{runJev}}">{{runLabel}}</x-import>
+</div>
+<div style="overflow-x: auto; border-top: 1px solid var(--border-subtle);">
+<table class="inv" style="min-width: 900px;">
+<thead><tr><th scope="col" style="width: 48px;"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">Select</span></th><th scope="col">Title</th><th scope="col">Kind</th><th scope="col">Source</th><th scope="col">Match key</th><th scope="col" class="num">Clients</th><th scope="col">First reported</th></tr></thead>
+<tbody>
+<sc-for list="{{titles}}" as="t" hint-placeholder-count="5">
+<tr>
+<td><x-import component-from-global-scope="SophosDS.Checkbox" checked="{{t.checked}}" on-change="{{t.toggle}}" aria-label="{{t.selectLabel}}"></x-import></td>
+<td style="font-weight: 600; color: var(--text-strong);">{{t.name}}</td>
+<td>{{t.kind}}</td>
+<td>{{t.source}}</td>
+<td class="mono">{{t.key}}</td>
+<td class="num">{{t.clients}}</td>
+<td style="white-space: nowrap;">{{t.first}}</td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<p style="margin: 0; padding: 16px 24px; font-size: 13px; line-height: 1.5; color: var(--text-muted);">Showing 5 of 137 pending titles. Jev receives kind, source, name, vendor and description, never anything about the computers.</p>
+</sc-if>
+
+<sc-if value="{{isProposals}}" hint-placeholder-val="{{ false }}">
+<div style="padding: 16px 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;">
+<span style="font-size: 14px; color: var(--text-muted);">Run CR-0107 · Jev 1.13 · today 09:12 · 24 titles. Subcategories set to Review or Not allowed need a per-row accept.</span>
+<x-import component-from-global-scope="SophosDS.Button" variant="primary" size="sm" on-click="{{acceptBulk}}">Accept all above 0.85 with Info attention</x-import>
+</div>
+<div style="overflow-x: auto; border-top: 1px solid var(--border-subtle);">
+<table class="inv" style="min-width: 1060px;">
+<thead><tr><th scope="col">Title</th><th scope="col">Proposed category</th><th scope="col">Probability</th><th scope="col">Note</th><th scope="col">Decision</th></tr></thead>
+<tbody>
+<sc-for list="{{proposals}}" as="p" hint-placeholder-count="6">
+<tr>
+<td><div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-weight: 600; color: var(--text-strong);">{{p.name}}</span><span style="font-size: 12px; color: var(--text-muted);">{{p.kind}}</span></div></td>
+<td><div class="cat"><span class="l1">{{p.l1}}</span><span class="l2">{{p.l2}}<x-import component-from-global-scope="SophosDS.Badge" color="{{p.color}}" soft="{{yes}}">{{p.attLabel}}</x-import></span></div></td>
+<td><div style="display: flex; align-items: center; gap: 10px; min-width: 150px;"><div style="flex: 1 1 auto; height: 8px; border-radius: 999px; background: var(--surface-subtle);"><div style="width: {{p.pct}}%; height: 100%; border-radius: 999px; background: {{p.bar}};"></div></div><span class="mono" style="font-size: 13px; color: var(--text-strong);">{{p.prob}}</span></div></td>
+<td style="font-size: 13px; color: var(--text-muted); max-width: 240px;">{{p.note}}</td>
+<td><sc-if value="{{p.accepted}}" hint-placeholder-val="{{ false }}"><x-import component-from-global-scope="SophosDS.AlertLevel" level="safe" label="Accepted" size="sm"></x-import></sc-if><sc-if value="{{p.open}}" hint-placeholder-val="{{ true }}"><div style="display: flex; gap: 8px;"><x-import component-from-global-scope="SophosDS.Button" variant="secondary" size="sm" on-click="{{p.accept}}">Accept</x-import><x-import component-from-global-scope="SophosDS.Button" variant="ghost" size="sm">Change</x-import></div></sc-if></td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<p style="margin: 0; padding: 16px 24px; font-size: 13px; line-height: 1.5; color: var(--text-muted);">Accepted proposals become draft revisions; they reach clients when you publish the batch.</p>
+</sc-if>
+</div>
+</x-import>
+
+<p style="margin: 0; font-size: 12px; line-height: 1.5; color: var(--text-muted);">Sample data. Client names, requests and Jev results are illustrative; the two extension IDs shown come from the LAB-PC01 export.</p>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1480}}'>
+var HI_TITLES = [
+  { name: 'ngrok', kind: 'Package', source: 'npm', key: 'ngrok', clients: 4, first: 'Thu, Oct 22' },
+  { name: 'cloudflared', kind: 'Package', source: 'Homebrew', key: 'cloudflared', clients: 3, first: 'Wed, Oct 21' },
+  { name: 'Parsec', kind: 'Program', source: 'Windows programs', key: 'parsec|parsec cloud, inc.', clients: 3, first: 'Tue, Oct 20' },
+  { name: 'Ollama', kind: 'Program', source: 'Windows programs', key: 'ollama|ollama', clients: 2, first: 'Fri, Oct 23' },
+  { name: 'WinSCP', kind: 'Program', source: 'Windows programs', key: 'winscp|martin prikryl', clients: 2, first: 'Mon, Oct 19' }
+];
+var HI_PROPOSALS = [
+  { name: 'Zoom Workplace', kind: 'Program · Windows', l1: 'Conferencing', l2: 'Video meetings', att: 'info', prob: 0.97, note: '' },
+  { name: 'Notion', kind: 'Program · Windows and macOS', l1: 'General business', l2: 'Notes and knowledge', att: 'info', prob: 0.92, note: '' },
+  { name: 'AnyViewer', kind: 'Program · Windows', l1: 'Remote access', l2: 'Remote desktop and support', att: 'review', prob: 0.93, note: 'Review subcategory: accept per row' },
+  { name: 'Hola VPN Proxy', kind: 'Chrome extension', l1: 'Proxy and tunnel', l2: 'Consumer VPN and proxy services', att: 'review', prob: 0.95, note: 'Review subcategory: accept per row' },
+  { name: 'Logi Options+', kind: 'Program · Windows', l1: 'System applications', l2: 'Drivers and hardware utilities', att: 'info', prob: 0.81, note: 'Below 0.85: review' },
+  { name: 'Player do NOW NET Claro', kind: 'Chrome extension', l1: 'Other', l2: 'Other', att: 'info', prob: 0.54, note: 'Description in Portuguese; low confidence. Second choice: Streaming media / Video streaming 0.31' }
+];
+var HI_ATT = { info: ['blue', 'Info'], review: ['high', 'Review'], not_allowed: ['critical', 'Not allowed'] };
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { tab: 'requests', picked: [0, 1, 2], accepted: [], toast: null };
+  }
+  renderVals() {
+    var self = this, s = this.state;
+    var titles = HI_TITLES.map(function (t, i) {
+      var on = s.picked.indexOf(i) !== -1;
+      return Object.assign({}, t, {
+        checked: on,
+        selectLabel: 'Select ' + t.name,
+        toggle: function () {
+          self.setState(function (st) {
+            var has = st.picked.indexOf(i) !== -1;
+            return { picked: has ? st.picked.filter(function (x) { return x !== i; }) : st.picked.concat([i]) };
+          });
+        }
+      });
+    });
+    var proposals = HI_PROPOSALS.map(function (p, i) {
+      var done = s.accepted.indexOf(i) !== -1;
+      return Object.assign({}, p, {
+        color: HI_ATT[p.att][0], attLabel: HI_ATT[p.att][1],
+        pct: Math.round(p.prob * 100),
+        prob: p.prob.toFixed(2),
+        bar: p.prob >= 0.85 ? 'var(--action)' : 'var(--alert-orange)',
+        accepted: done,
+        open: !done,
+        accept: function () { self.setState(function (st) { return { accepted: st.accepted.concat([i]) }; }); }
+      });
+    });
+    return {
+      yes: true, no: false, logoH: 22,
+      tabs: [
+        { id: 'requests', label: 'Reclassification requests', badge: 3 },
+        { id: 'titles', label: 'New titles', badge: 137 },
+        { id: 'proposals', label: 'Jev proposals', badge: 24 }
+      ],
+      tab: s.tab,
+      onTab: function (id) { self.setState({ tab: id }); },
+      isRequests: s.tab === 'requests', isTitles: s.tab === 'titles', isProposals: s.tab === 'proposals',
+      titles: titles,
+      selectedText: s.picked.length + ' selected.',
+      runDisabled: s.picked.length === 0,
+      runLabel: 'Run Jev on ' + s.picked.length + ' selected',
+      runJev: function () {
+        self.setState({ toast: { title: 'Run CR-0108 started on ' + s.picked.length + ' titles', message: 'Proposals will appear under Jev proposals. Nothing is published until you accept it.' }, picked: [] });
+      },
+      proposals: proposals,
+      acceptBulk: function () {
+        var ids = [];
+        HI_PROPOSALS.forEach(function (p, i) { if (p.prob >= 0.85 && p.att === 'info') ids.push(i); });
+        self.setState(function (st) {
+          return {
+            accepted: st.accepted.concat(ids.filter(function (i) { return st.accepted.indexOf(i) === -1; })),
+            toast: { title: ids.length + ' proposals accepted', message: 'AnyViewer and Hola VPN Proxy fall in Review subcategories and still need a per-row accept.' }
+          };
+        });
+      },
+      hasToast: !!s.toast,
+      toastTitle: s.toast ? s.toast.title : '',
+      toastMessage: s.toast ? s.toast.message : '',
+      closeToast: function () { self.setState({ toast: null }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

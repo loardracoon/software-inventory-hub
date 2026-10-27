@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Engines and usage · Dictionary Hub</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/sophosds/tokens.css">
+<link rel="stylesheet" href="ds/sophosds/components/bundle.css">
+<script src="ds/sophosds/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:var(--text-brand)}a:hover{color:var(--action-hover)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+.nav-a{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 12px;box-sizing:border-box;border-radius:8px;color:#bbcfde;text-decoration:none;font-size:14px}
+.nav-a:hover{background:rgba(255,255,255,0.06);color:#ffffff}
+.nav-a.on{background:rgba(0,237,255,0.12);color:#00edff;font-weight:600}
+.nav-a:focus-visible{outline:2px solid #00edff;outline-offset:2px}
+table.inv{width:100%;border-collapse:collapse;font-size:14px}
+table.inv th{text-align:left;padding:0 16px;height:44px;background:var(--surface-subtle);border-bottom:1px solid var(--border-strong);font-family:var(--font-display);font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-strong);white-space:nowrap}
+table.inv td{padding:12px 16px;border-bottom:1px solid var(--border-subtle);vertical-align:middle;color:var(--text-body)}
+table.inv tbody tr:hover td{background:var(--surface-subtle)}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px}
+button.seg{min-height:40px;cursor:pointer}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-wrap: wrap; background: var(--surface-subtle); color: var(--text-body); font-family: var(--font-sans);">
+
+<nav aria-label="Hub navigation" style="flex: 1 1 232px; box-sizing: border-box; padding: 24px 16px; background: var(--dark-blue); display: flex; flex-direction: column; gap: 28px;">
+<div style="display: flex; flex-direction: column; gap: 10px; padding: 0 12px;">
+<x-import component-from-global-scope="SophosDS.Logo" variant="white" height="{{logoH}}"></x-import>
+<span style="font-family: var(--font-subtitle); font-size: 15px; line-height: 1.2; color: #ffffff;">Dictionary Hub</span>
+<span style="font-size: 12px; color: #bbcfde;">Admin console</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px;">
+<a class="nav-a" href="HubInbox.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg><span style="flex: 1 1 auto;">Inbox</span><span style="min-width: 22px; padding: 2px 7px; box-sizing: border-box; border-radius: 999px; background: #00edff; color: #001a47; font-size: 11px; font-weight: 600; text-align: center;">3</span></a>
+<a class="nav-a" href="HubEntry.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>Dictionary</a>
+<a class="nav-a on" href="HubEngines.dc.html" aria-current="page"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="16" height="16" x="4" y="4" rx="2"></rect><rect width="6" height="6" x="9" y="9" rx="1"></rect><path d="M15 2v2"></path><path d="M15 20v2"></path><path d="M2 15h2"></path><path d="M2 9h2"></path><path d="M20 15h2"></path><path d="M20 9h2"></path><path d="M9 2v2"></path><path d="M9 20v2"></path></svg>Engines &amp; usage</a>
+<a class="nav-a" href="HubTaxonomy.dc.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2H2v10l9.29 9.29a1 1 0 0 0 1.41 0l8.59-8.59a1 1 0 0 0 0-1.41Z"></path><circle cx="7" cy="7" r="1.5"></circle></svg>Taxonomy</a>
+<a class="nav-a" href="#clients"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>Clients</a>
+<a class="nav-a" href="#settings"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="21" x2="14" y1="4" y2="4"></line><line x1="10" x2="3" y1="4" y2="4"></line><line x1="21" x2="12" y1="12" y2="12"></line><line x1="8" x2="3" y1="12" y2="12"></line><line x1="21" x2="16" y1="20" y2="20"></line><line x1="12" x2="3" y1="20" y2="20"></line><line x1="14" x2="14" y1="2" y2="6"></line><line x1="8" x2="8" y1="10" y2="14"></line><line x1="16" x2="16" y1="18" y2="22"></line></svg>Settings</a>
+</div>
+</nav>
+
+<div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column;">
+<header style="background: var(--surface-page); border-bottom: 1px solid var(--border-subtle);">
+<div style="max-width: 1200px; margin: 0 auto; padding: 14px 24px; box-sizing: border-box; display: flex; flex-wrap: wrap; align-items: center; gap: 12px;">
+<div style="flex: 1 1 320px; min-width: 0;"><x-import component-from-global-scope="SophosDS.Input" type="search" aria-label="Search the dictionary" placeholder="Search entries, match keys or request IDs"></x-import></div>
+<x-import component-from-global-scope="SophosDS.Badge" color="info" soft="{{yes}}">Published seq 10,482</x-import>
+<x-import component-from-global-scope="SophosDS.Badge" color="medium">Mock · sample data</x-import>
+<span role="img" aria-label="Signed in as hub admin" style="width: 36px; height: 36px; border-radius: 999px; background: var(--sophos-blue); color: #ffffff; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600;">AD</span>
+</div>
+</header>
+
+<main style="width: 100%; max-width: 1200px; margin: 0 auto; padding: 32px 24px 48px; box-sizing: border-box; display: flex; flex-direction: column; gap: 24px;">
+
+<div style="display: flex; flex-direction: column; gap: 12px;">
+<x-import component-from-global-scope="SophosDS.Eyebrow" size="sm" tone="brand" tick="{{yes}}">AI ENGINES</x-import>
+<h1 style="margin: 0; font-family: var(--font-display); font-size: 36px; font-weight: 400; line-height: 1.2; letter-spacing: -0.01em; color: var(--text-strong);">Engines &amp; usage</h1>
+<p style="margin: 0; font-size: 14px; line-height: 1.5; color: var(--text-muted);">October 2026 · costs are estimates from the price table, computed when each call is logged.</p>
+</div>
+
+<sc-if value="{{hasToast}}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="SophosDS.Toast" tone="{{toastTone}}" title="{{toastTitle}}" message="{{toastMessage}}" on-close="{{closeToast}}"></x-import>
+</sc-if>
+
+<div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: stretch;">
+<div style="flex: 1 1 440px; min-width: 0;">
+<x-import component-from-global-scope="SophosDS.Card">
+<div style="display: flex; flex-direction: column; gap: 18px;">
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;">
+<div style="display: flex; flex-direction: column; gap: 4px;">
+<x-import component-from-global-scope="SophosDS.Eyebrow" size="sm">CLASSIFIER</x-import>
+<h2 style="margin: 0; font-family: var(--font-subtitle); font-size: 20px; font-weight: 400; color: var(--text-strong);">Jev 1.13 · Lovable AI</h2>
+</div>
+<x-import component-from-global-scope="SophosDS.AlertLevel" level="{{jevLevel}}" label="{{jevStatus}}" size="sm"></x-import>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px;">
+<span id="jev-mode-label" style="font-size: 13px; font-weight: 600; color: var(--text-strong);">Mode</span>
+<div role="group" aria-labelledby="jev-mode-label" style="display: flex; flex-wrap: wrap; gap: 8px;">
+<sc-for list="{{jevModes}}" as="m" hint-placeholder-count="3">
+<button type="button" class="{{m.cls}}" aria-pressed="{{m.pressed}}" onClick="{{m.pick}}">{{m.label}}</button>
+</sc-for>
+</div>
+<span style="font-size: 13px; color: var(--text-muted);">{{jevModeNote}}</span>
+</div>
+<x-import component-from-global-scope="SophosDS.ProgressBar" value="63" label="Month · 1.9 of 3 credits, estimated"></x-import>
+<x-import component-from-global-scope="SophosDS.ProgressBar" value="70" label="Today · 140 of 200 titles"></x-import>
+<x-import component-from-global-scope="SophosDS.ProgressBar" value="38" label="Auto-publish today · 38 of 100 (≥ 0.95, Info subcategories only)"></x-import>
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;">
+<span style="font-size: 13px; color: var(--text-muted);">Next automatic run 15:12 · up to 50 titles reported by 2+ clients</span>
+<div style="display: flex; gap: 8px;">
+<x-import component-from-global-scope="SophosDS.Button" variant="secondary" size="sm" on-click="{{toggleJev}}">{{jevPauseLabel}}</x-import>
+</div>
+</div>
+</div>
+</x-import>
+</div>
+
+<div style="flex: 1 1 440px; min-width: 0;">
+<x-import component-from-global-scope="SophosDS.Card">
+<div style="display: flex; flex-direction: column; gap: 18px;">
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;">
+<div style="display: flex; flex-direction: column; gap: 4px;">
+<x-import component-from-global-scope="SophosDS.Eyebrow" size="sm">RESEARCHER</x-import>
+<h2 style="margin: 0; font-family: var(--font-subtitle); font-size: 20px; font-weight: 400; color: var(--text-strong);">{{researchTitle}}</h2>
+</div>
+<x-import component-from-global-scope="SophosDS.AlertLevel" level="safe" label="Running" size="sm"></x-import>
+</div>
+<div style="width: 240px;">
+<x-import component-from-global-scope="SophosDS.Select" label="Provider (direct API)" value="{{provider}}" on-change="{{onProvider}}">
+<option value="gemini">Gemini · Google Search grounding</option>
+<option value="claude">Claude · web search tool</option>
+</x-import>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px;">
+<span style="font-size: 13px; font-weight: 600; color: var(--text-strong);">Automatic triggers</span>
+<x-import component-from-global-scope="SophosDS.Switch" label="Reclassification request" checked="{{tReq}}" on-change="{{onReq}}"></x-import>
+<x-import component-from-global-scope="SophosDS.Switch" label="Proposal in a Review or Not allowed subcategory" checked="{{tSens}}" on-change="{{onSens}}"></x-import>
+<x-import component-from-global-scope="SophosDS.Switch" label="Jev probability below 0.85" checked="{{tLow}}" on-change="{{onLow}}"></x-import>
+<x-import component-from-global-scope="SophosDS.Switch" label="Rule and Jev disagree" checked="{{tDis}}" on-change="{{onDis}}"></x-import>
+<span style="font-size: 12px; color: var(--text-muted);">The Research button on an entry is always available. One automatic research per entry every 30 days.</span>
+</div>
+<x-import component-from-global-scope="SophosDS.ProgressBar" value="30" label="Today · 6 of 20 researches"></x-import>
+<div style="display: flex; align-items: flex-start; gap: 10px; padding: 12px; border-radius: 12px; background: var(--surface-subtle);">
+<x-import component-from-global-scope="SophosDS.AlertLevel" level="medium" label="Prices not set" size="sm"></x-import>
+<span style="font-size: 13px; line-height: 1.5; color: var(--text-body);">The USD 10 monthly budget cannot be enforced yet. Until you fill the price table, only the daily cap of 20 applies.</span>
+</div>
+</div>
+</x-import>
+</div>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 16px;">
+<div style="flex: 1 1 200px; min-width: 0;"><x-import component-from-global-scope="SophosDS.Card"><div style="display: flex; flex-direction: column; gap: 10px; min-height: 104px;"><x-import component-from-global-scope="SophosDS.Eyebrow" size="sm">TITLES CLASSIFIED</x-import><div style="font-family: var(--font-display); font-size: 36px; line-height: 1; color: var(--text-strong);">1,184</div><p style="margin: 0; font-size: 13px; color: var(--text-muted);">By Jev this month</p></div></x-import></div>
+<div style="flex: 1 1 200px; min-width: 0;"><x-import component-from-global-scope="SophosDS.Card"><div style="display: flex; flex-direction: column; gap: 10px; min-height: 104px;"><x-import component-from-global-scope="SophosDS.Eyebrow" size="sm">AUTO-PUBLISHED</x-import><div style="font-family: var(--font-display); font-size: 36px; line-height: 1; color: var(--text-strong);">412</div><p style="margin: 0; font-size: 13px; color: var(--text-muted);">35% of results · 3 reverted</p></div></x-import></div>
+<div style="flex: 1 1 200px; min-width: 0;"><x-import component-from-global-scope="SophosDS.Card"><div style="display: flex; flex-direction: column; gap: 10px; min-height: 104px;"><x-import component-from-global-scope="SophosDS.Eyebrow" size="sm">JEV ACCEPTANCE</x-import><div style="font-family: var(--font-display); font-size: 36px; line-height: 1; color: var(--text-strong);">91<span style="font-size: 20px;">%</span></div><p style="margin: 0; font-size: 13px; color: var(--text-muted);">Last 50 decided · pause below 70%</p></div></x-import></div>
+<div style="flex: 1 1 200px; min-width: 0;"><x-import component-from-global-scope="SophosDS.Card"><div style="display: flex; flex-direction: column; gap: 10px; min-height: 104px;"><x-import component-from-global-scope="SophosDS.Eyebrow" size="sm">COST PER ACCEPTED TITLE</x-import><div style="font-family: var(--font-display); font-size: 36px; line-height: 1; color: var(--text-strong);">0.0018</div><p style="margin: 0; font-size: 13px; color: var(--text-muted);">Credits, Jev, estimated</p></div></x-import></div>
+</div>
+
+<x-import component-from-global-scope="SophosDS.Card" padded="{{no}}">
+<div style="display: flex; flex-direction: column;">
+<div style="padding: 20px 24px 0;"><x-import component-from-global-scope="SophosDS.Tabs" items="{{tabs}}" value="{{tab}}" on-change="{{onTab}}"></x-import></div>
+
+<sc-if value="{{isAuto}}" hint-placeholder-val="{{ true }}">
+<div style="overflow-x: auto; margin-top: 16px; border-top: 1px solid var(--border-subtle);">
+<table class="inv" style="min-width: 960px;">
+<thead><tr><th scope="col">Published</th><th scope="col">Title</th><th scope="col">Category</th><th scope="col">Probability</th><th scope="col">Run</th><th scope="col"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">Action</span></th></tr></thead>
+<tbody>
+<sc-for list="{{autos}}" as="a" hint-placeholder-count="6">
+<tr>
+<td style="white-space: nowrap;">{{a.when}}</td>
+<td><div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-weight: 600; color: var(--text-strong);">{{a.name}}</span><span style="font-size: 12px; color: var(--text-muted);">{{a.kind}}</span></div></td>
+<td><div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 12px; color: var(--text-muted);">{{a.l1}}</span><div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px;"><span style="font-weight: 600; color: var(--text-strong);">{{a.l2}}</span><x-import component-from-global-scope="SophosDS.Badge" color="blue" soft="{{yes}}">Info</x-import></div></div></td>
+<td class="mono" style="font-size: 13px;">{{a.prob}}</td>
+<td class="mono" style="font-size: 13px;">{{a.run}}</td>
+<td><sc-if value="{{a.reverted}}" hint-placeholder-val="{{ false }}"><span style="font-size: 13px; color: var(--text-muted);">Reverted · new revision</span></sc-if><sc-if value="{{a.live}}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="SophosDS.Button" variant="ghost" size="sm" on-click="{{a.revert}}">Revert</x-import></sc-if></td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<p style="margin: 0; padding: 16px 24px; font-size: 13px; line-height: 1.5; color: var(--text-muted);">A revert counts as a rejected proposal in the acceptance rate, so frequent reverts eventually pause automatic mode.</p>
+</sc-if>
+
+<sc-if value="{{isEvents}}" hint-placeholder-val="{{ false }}">
+<div style="padding: 8px 24px 20px; display: flex; flex-direction: column;">
+<sc-for list="{{events}}" as="e" hint-placeholder-count="5">
+<div style="display: grid; grid-template-columns: 140px 130px minmax(0, 1fr); gap: 16px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--border-subtle);">
+<span style="font-size: 13px; color: var(--text-muted);">{{e.when}}</span>
+<span><x-import component-from-global-scope="SophosDS.Badge" color="{{e.color}}" soft="{{yes}}">{{e.type}}</x-import></span>
+<div style="display: flex; flex-direction: column; gap: 2px; min-width: 0;"><span style="font-size: 14px; font-weight: 600; color: var(--text-strong);">{{e.title}}</span><span style="font-size: 12px; color: var(--text-muted);">{{e.detail}}</span></div>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{isPrices}}" hint-placeholder-val="{{ false }}">
+<div style="overflow-x: auto; margin-top: 16px; border-top: 1px solid var(--border-subtle);">
+<table class="inv" style="min-width: 820px;">
+<thead><tr><th scope="col">Engine</th><th scope="col">Model</th><th scope="col">Unit</th><th scope="col">Price</th><th scope="col">Status</th></tr></thead>
+<tbody>
+<tr><td style="font-weight: 600; color: var(--text-strong);">Jev</td><td>Jev 1.13 · Lovable AI</td><td>per title</td><td style="width: 200px;"><x-import component-from-global-scope="SophosDS.Input" aria-label="Jev price per title in credits" default-value="0.0016"></x-import></td><td><span style="font-size: 13px; color: var(--text-muted);">Credits · calibrated Oct 3 against the Lovable usage panel</span></td></tr>
+<tr><td style="font-weight: 600; color: var(--text-strong);">Research</td><td>Gemini</td><td>per 1M input tokens</td><td><x-import component-from-global-scope="SophosDS.Input" aria-label="Gemini price per million input tokens" placeholder="Set from provider pricing"></x-import></td><td><x-import component-from-global-scope="SophosDS.Badge" color="medium" soft="{{yes}}">Not set</x-import></td></tr>
+<tr><td style="font-weight: 600; color: var(--text-strong);">Research</td><td>Gemini</td><td>per 1M output tokens</td><td><x-import component-from-global-scope="SophosDS.Input" aria-label="Gemini price per million output tokens" placeholder="Set from provider pricing"></x-import></td><td><x-import component-from-global-scope="SophosDS.Badge" color="medium" soft="{{yes}}">Not set</x-import></td></tr>
+<tr><td style="font-weight: 600; color: var(--text-strong);">Research</td><td>Gemini</td><td>per grounded request</td><td><x-import component-from-global-scope="SophosDS.Input" aria-label="Gemini price per grounded request" placeholder="Set from provider pricing"></x-import></td><td><x-import component-from-global-scope="SophosDS.Badge" color="medium" soft="{{yes}}">Not set</x-import></td></tr>
+<tr><td style="font-weight: 600; color: var(--text-strong);">Research</td><td>Claude</td><td>per 1M input tokens</td><td><x-import component-from-global-scope="SophosDS.Input" aria-label="Claude price per million input tokens" placeholder="Set from provider pricing"></x-import></td><td><x-import component-from-global-scope="SophosDS.Badge" color="medium" soft="{{yes}}">Not set</x-import></td></tr>
+<tr><td style="font-weight: 600; color: var(--text-strong);">Research</td><td>Claude</td><td>per 1M output tokens</td><td><x-import component-from-global-scope="SophosDS.Input" aria-label="Claude price per million output tokens" placeholder="Set from provider pricing"></x-import></td><td><x-import component-from-global-scope="SophosDS.Badge" color="medium" soft="{{yes}}">Not set</x-import></td></tr>
+<tr><td style="font-weight: 600; color: var(--text-strong);">Research</td><td>Claude</td><td>per web search</td><td><x-import component-from-global-scope="SophosDS.Input" aria-label="Claude price per web search" placeholder="Set from provider pricing"></x-import></td><td><x-import component-from-global-scope="SophosDS.Badge" color="medium" soft="{{yes}}">Not set</x-import></td></tr>
+</tbody>
+</table>
+</div>
+<p style="margin: 0; padding: 16px 24px; font-size: 13px; line-height: 1.5; color: var(--text-muted);">A new price applies from now on; past calls keep the estimate they were logged with.</p>
+</sc-if>
+</div>
+</x-import>
+
+<p style="margin: 0; font-size: 12px; line-height: 1.5; color: var(--text-muted);">Sample data. Usage, costs and the calibrated Jev price are illustrative; provider prices are left blank on purpose.</p>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1640}}'>
+var HG_AUTOS = [
+  { when: 'Today 09:12', name: 'Zoom Workplace', kind: 'Program · Windows', l1: 'Conferencing', l2: 'Video meetings', prob: '0.97', run: 'CR-0107' },
+  { when: 'Today 09:12', name: 'Microsoft Teams', kind: 'Program · Windows', l1: 'Conferencing', l2: 'Video meetings', prob: '0.98', run: 'CR-0107' },
+  { when: 'Today 09:12', name: '7-Zip', kind: 'Program · Windows', l1: 'General business', l2: 'Compression and file utilities', prob: '0.96', run: 'CR-0107' },
+  { when: 'Today 03:12', name: 'Slack', kind: 'Program · macOS', l1: 'Instant messenger', l2: 'Team chat', prob: '0.97', run: 'CR-0106' },
+  { when: 'Today 03:12', name: 'Spotify', kind: 'Program · Windows', l1: 'Streaming media', l2: 'Music and podcasts', prob: '0.98', run: 'CR-0106' },
+  { when: 'Today 03:12', name: 'Google Chrome', kind: 'Program · Windows', l1: 'General internet', l2: 'Web browsers', prob: '0.99', run: 'CR-0106' }
+];
+var HG_EVENTS = [
+  { when: 'Today 09:12', type: 'Run', color: 'info', title: 'Jev automatic run CR-0107 · 24 titles', detail: '9 auto-published, 15 proposals · 0.04 credits estimated' },
+  { when: 'Today 03:12', type: 'Run', color: 'info', title: 'Jev automatic run CR-0106 · 50 titles', detail: '21 auto-published, 29 proposals · 0.08 credits estimated' },
+  { when: 'Thu 21:12', type: 'Skipped', color: 'slate', title: 'Jev run skipped', detail: 'Daily cap reached: 200 titles' },
+  { when: 'Tue 10:40', type: 'Paused', color: 'high', title: 'Research paused automatically', detail: '3 of 5 calls failed in one hour (HTTP 429 from the provider) · resumed by admin at 11:05' },
+  { when: 'Oct 1 00:00', type: 'Budget', color: 'blue', title: 'Monthly budgets reset', detail: 'Jev 3 credits · research USD 10 (not enforced: prices not set)' }
+];
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { tab: 'auto', jevMode: 'automatic', jevPaused: false, provider: 'gemini', tReq: true, tSens: true, tLow: false, tDis: false, reverted: [], toast: null };
+  }
+  renderVals() {
+    var self = this, s = this.state;
+    var modeNotes = {
+      off: 'Jev does not run. New titles stay pending.',
+      manual: 'Jev runs only when you select titles in the Inbox.',
+      automatic: 'Every 6 hours, within budget. Auto-publishes only at 0.95 or more when both the current and the proposed subcategory are Info; everything else becomes a proposal.'
+    };
+    var jevModes = [['off', 'Off'], ['manual', 'Manual'], ['automatic', 'Automatic']].map(function (m) {
+      var on = s.jevMode === m[0];
+      return { label: m[1], pressed: on ? 'true' : 'false', cls: 'seg sds-tag' + (on ? ' sds-tag--active' : ''), pick: function () { self.setState({ jevMode: m[0], toast: { tone: 'info', title: 'Jev mode set to ' + m[1].toLowerCase(), message: modeNotes[m[0]] } }); } };
+    });
+    var autos = HG_AUTOS.map(function (a, i) {
+      var done = s.reverted.indexOf(i) !== -1;
+      return Object.assign({}, a, {
+        reverted: done, live: !done,
+        revert: function () { self.setState(function (st) { return { reverted: st.reverted.concat([i]), toast: { tone: 'info', title: a.name + ' reverted', message: 'A new revision restores the previous value; clients receive it on their next sync. Counted as a rejected proposal.' } }; }); }
+      });
+    });
+    function sw(key) { return function (v) { var o = {}; o[key] = !!v; self.setState(o); }; }
+    var paused = s.jevPaused || s.jevMode === 'off';
+    return {
+      yes: true, no: false, logoH: 22,
+      jevModes: jevModes,
+      jevModeNote: modeNotes[s.jevMode],
+      jevLevel: paused ? 'high' : 'safe',
+      jevStatus: s.jevMode === 'off' ? 'Off' : (s.jevPaused ? 'Paused' : 'Running'),
+      jevPauseLabel: s.jevPaused ? 'Resume' : 'Pause',
+      toggleJev: function () { self.setState({ jevPaused: !s.jevPaused, toast: s.jevPaused ? { tone: 'success', title: 'Jev resumed', message: 'The next automatic run follows the schedule.' } : { tone: 'info', title: 'Jev paused by admin', message: 'No calls until you resume. New titles stay pending.' } }); },
+      researchTitle: s.provider === 'gemini' ? 'Gemini · direct API' : 'Claude · direct API',
+      provider: s.provider,
+      onProvider: function (e) { self.setState({ provider: e.target.value }); },
+      tReq: s.tReq, onReq: sw('tReq'),
+      tSens: s.tSens, onSens: sw('tSens'),
+      tLow: s.tLow, onLow: sw('tLow'),
+      tDis: s.tDis, onDis: sw('tDis'),
+      tabs: [
+        { id: 'auto', label: 'Auto-published today', badge: 38 },
+        { id: 'events', label: 'Events' },
+        { id: 'prices', label: 'Price table' }
+      ],
+      tab: s.tab,
+      onTab: function (id) { self.setState({ tab: id }); },
+      isAuto: s.tab === 'auto', isEvents: s.tab === 'events', isPrices: s.tab === 'prices',
+      autos: autos,
+      events: HG_EVENTS,
+      hasToast: !!s.toast,
+      toastTone: s.toast ? s.toast.tone : 'info',
+      toastTitle: s.toast ? s.toast.title : '',
+      toastMessage: s.toast ? s.toast.message : '',
+      closeToast: function () { self.setState({ toast: null }); }
+    };
+  }
+}
+</script>
+</body>
+</html>
