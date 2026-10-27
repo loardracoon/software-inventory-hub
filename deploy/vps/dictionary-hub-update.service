@@ -1,0 +1,8 @@
+[Unit]
+Description=Update the Dictionary Hub to the build deployed from GitHub main
+After=docker.service network-online.target
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/dictionary-hub/update.sh

@@ -1,0 +1,148 @@
+# Dictionary Hub on the VPS (/opt/dictionary-hub): self-hosted Supabase plus the console, published only on
+# HUB_PORT with TLS (the Let's Encrypt certificate Mailu keeps for mail.sophizo.com.br, mounted read-only).
+# Mailu is a separate Compose project; nothing here changes it. Magic links go out through Mailu's SMTP.
+# Values come from .env (chmod 600, never committed); HUB_TAG is moved by update.sh.
+name: dictionary-hub
+
+x-supabase-env: &jwt
+  JWT_SECRET: ${JWT_SECRET}
+
+services:
+  db:
+    image: public.ecr.aws/supabase/postgres:17.11.0.006
+    command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf", "-c", "log_min_messages=fatal"]
+    restart: unless-stopped
+    environment:
+      <<: *jwt
+      POSTGRES_HOST: /var/run/postgresql
+      PGPORT: "5432"
+      POSTGRES_PORT: "5432"
+      PGDATABASE: postgres
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      JWT_EXP: "3600"
+    volumes: [db-data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  auth:
+    image: public.ecr.aws/supabase/gotrue:v2.197.0
+    restart: unless-stopped
+    depends_on: { db: { condition: service_healthy } }
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: "9999"
+      API_EXTERNAL_URL: ${PUBLIC_URL}
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${POSTGRES_PASSWORD}@db:5432/postgres
+      GOTRUE_SITE_URL: ${PUBLIC_URL}
+      GOTRUE_URI_ALLOW_LIST: ${PUBLIC_URL}/**
+      GOTRUE_DISABLE_SIGNUP: "true"
+      GOTRUE_JWT_ADMIN_ROLES: service_role
+      GOTRUE_JWT_AUD: authenticated
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+      GOTRUE_JWT_EXP: "3600"
+      GOTRUE_JWT_SECRET: ${JWT_SECRET}
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: "true"
+      GOTRUE_EXTERNAL_PHONE_ENABLED: "false"
+      GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED: "false"
+      GOTRUE_MAILER_AUTOCONFIRM: "false"
+      GOTRUE_SMTP_HOST: ${SMTP_HOST}
+      GOTRUE_SMTP_PORT: "465"
+      GOTRUE_SMTP_USER: ${SMTP_USER}
+      GOTRUE_SMTP_PASS: ${SMTP_PASS}
+      GOTRUE_SMTP_ADMIN_EMAIL: ${SMTP_USER}
+      GOTRUE_SMTP_SENDER_NAME: Dictionary Hub
+      GOTRUE_MAILER_SUBJECTS_MAGIC_LINK: Your Dictionary Hub sign-in link
+      GOTRUE_MAILER_URLPATHS_INVITE: /auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_CONFIRMATION: /auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_RECOVERY: /auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE: /auth/v1/verify
+
+  rest:
+    image: public.ecr.aws/supabase/postgrest:v16.5
+    restart: unless-stopped
+    depends_on: { db: { condition: service_healthy } }
+    environment:
+      PGRST_DB_URI: postgres://authenticator:${POSTGRES_PASSWORD}@db:5432/postgres
+      PGRST_DB_SCHEMAS: public,graphql_public
+      PGRST_DB_EXTRA_SEARCH_PATH: public,extensions
+      PGRST_DB_MAX_ROWS: "1000"
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_DB_USE_LEGACY_GUCS: "false"
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      PGRST_APP_SETTINGS_JWT_SECRET: ${JWT_SECRET}
+      PGRST_APP_SETTINGS_JWT_EXP: "3600"
+
+  functions:
+    image: ghcr.io/loardracoon/software-inventory-hub-functions:${HUB_TAG}
+    restart: unless-stopped
+    environment:
+      <<: *jwt
+      SUPABASE_URL: http://kong:8000
+      NO_VERIFY_JWT: dictionary-changes,titles-submit,reclassification-requests,jev,digest,research
+      SUPABASE_ANON_KEY: ${ANON_KEY}
+      SUPABASE_SERVICE_ROLE_KEY: ${SERVICE_ROLE_KEY}
+      SUPABASE_DB_URL: postgres://postgres:${POSTGRES_PASSWORD}@db:5432/postgres
+      CRON_SECRET: ${CRON_SECRET}
+      HUB_CONSOLE_URL: ${PUBLIC_URL}
+      JEV_PROVIDER: mock
+      RESEARCH_PROVIDER: mock
+
+  # Front end + API gateway (same image as on K3S). Database jobs call it as http://kong:8000.
+  kong:
+    image: ghcr.io/loardracoon/software-inventory-hub-web:${HUB_TAG}
+    restart: unless-stopped
+    # nginx resolves its upstreams at start: restart it whenever one of them is recreated (new IP).
+    depends_on:
+      auth: { condition: service_started, restart: true }
+      rest: { condition: service_started, restart: true }
+      functions: { condition: service_started, restart: true }
+    environment:
+      SUPABASE_URL: ${PUBLIC_URL}
+      SUPABASE_ANON_KEY: ${ANON_KEY}
+    # No Mailpit here (real email through Mailu): /mail/ resolves to nothing and its empty htpasswd refuses everyone.
+    extra_hosts: ["mailpit:127.0.0.1"]
+    volumes: ["./mail.htpasswd:/etc/nginx/auth/htpasswd:ro"]
+
+  tls:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on: [kong]
+    ports: ["${HUB_PORT}:8443"]
+    volumes:
+      - ./tls.conf:/etc/nginx/conf.d/default.conf:ro
+      - /mailu/certs/letsencrypt:/le:ro
+    # Reload twice a day to pick up the certificate Mailu renews.
+    command: ["sh", "-c", "while :; do sleep 43200; nginx -s reload; done & exec nginx -g 'daemon off;'"]
+
+  # Containers cannot reach Mailu through the host's public IP (no hairpin between Docker bridges), so this
+  # relay answers as mail.sophizo.com.br on the Hub network and forwards to Mailu's front (465, implicit TLS; Mailu does not listen on 587) on its own network.
+  # TLS stays end to end: GoTrue still checks Mailu's certificate for mail.sophizo.com.br.
+  smtp-relay:
+    image: alpine/socat:1.8.0.3
+    restart: unless-stopped
+    command: ["TCP-LISTEN:465,fork,reuseaddr", "TCP:front:465"]
+    networks:
+      default:
+        aliases: [mail.sophizo.com.br]
+      mailu: {}
+
+  migrate:
+    image: ghcr.io/loardracoon/software-inventory-hub-migrate:${HUB_TAG}
+    profiles: [tools]
+    depends_on: { db: { condition: service_healthy } }
+    environment:
+      DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@db:5432/postgres
+
+volumes:
+  db-data:
+
+networks:
+  mailu:
+    external: true
+    name: mailu_default
