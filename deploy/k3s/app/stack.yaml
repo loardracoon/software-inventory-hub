@@ -221,6 +221,9 @@ spec:
         - name: nginx
           image: ghcr.io/loardracoon/software-inventory-hub-web:21349f8945665025e480a6663e1b830d5d1910ca
           imagePullPolicy: IfNotPresent
+          env:
+            - { name: SUPABASE_URL, value: "https://hub.clau.sophizo.com.br" }
+            - { name: SUPABASE_ANON_KEY, valueFrom: { secretKeyRef: { name: supabase, key: ANON_KEY } } }
           ports: [{ containerPort: 8000 }]
           readinessProbe:
             httpGet: { path: /, port: 8000 }
