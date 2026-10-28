@@ -10,7 +10,7 @@ delete from vault.secrets where name like 'provider_key_%';
 update public.engine_settings set mode = 'automatic', paused = false, paused_reason = null, daily_titles = 20, monthly_budget_usd = 10,
   triggers = '{"request": true, "sensitive_proposal": true, "jev_below_085": false, "rule_jev_disagree": false}' where engine = 'research';
 
-select plan(19);
+select plan(23);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-00000000000a', 'admin@example.com'),
@@ -78,6 +78,15 @@ select pg_temp.as_user('00000000-0000-0000-0000-00000000000a');
 select results_eq($$select (d ->> 'month_calls')::int, (d ->> 'month_searches')::int from public.engine_usage_detail('research') d$$, $$values (2, 4)$$,
   'usage detail counts calls and searches');
 reset role;
+
+-- Jev on OpenAI (alternative to Claude) -------------------------------------------------------------
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000a');
+select lives_ok($$select public.set_engine_config('jev', 'openai', 'gpt-5-mini', 200, 3)$$, 'Jev can run on OpenAI');
+select results_eq($$select provider, model from public.engine_settings where engine = 'jev'$$, $$values ('openai', 'gpt-5-mini')$$, 'Jev provider and model saved');
+select throws_ok($$select public.set_engine_config('jev', 'gemini', 'gemini-3.8-flash', 200, 3)$$, '22023', 'Jev runs on Claude or OpenAI', 'Jev refuses other providers');
+reset role;
+select is((select (public.record_ai_call('jev', 'gpt-5-mini', 'classify', null, 1, 1000000, 1000000, 1000000, 0, 10, 'ok', null, null, 'openai') ->> 'cost_usd')::numeric),
+  2.275::numeric, 'gpt-5-mini cost: 0.25 input + 2.00 output + 0.025 cached input per million');
 
 select * from finish();
 rollback;

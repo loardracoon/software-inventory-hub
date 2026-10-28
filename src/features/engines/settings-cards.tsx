@@ -11,7 +11,7 @@ import { Eyebrow } from "@/components/shared/eyebrow";
 import { Field, NativeSelect } from "@/components/shared/filters";
 import { formatDateTime } from "@/lib/format";
 import { useLoad } from "@/lib/use-load";
-import { clearProviderKey, fetchEngine, fetchProviderKeys, PROVIDERS, setEngineConfig, setProviderKey, TRIGGERS, type Engine, type Provider, type ProviderKey } from "./api";
+import { clearProviderKey, fetchEngine, fetchProviderKeys, JEV_PROVIDERS, PROVIDERS, setEngineConfig, setProviderKey, TRIGGERS, type Engine, type Provider, type ProviderKey } from "./api";
 
 // Settings › AI providers: one write-only key per provider, kept in Vault. The console only sees the hint.
 export function AiProvidersCard() {
@@ -195,6 +195,84 @@ function ResearchForm({ engine, onSaved }: { engine: Engine; onSaved: () => void
         <Button type="submit" size="sm" disabled={saving}>
           {saving ? <Loader2 className="animate-spin" aria-hidden="true" /> : null}
           Save
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+// Settings › Jev: which provider and model classify the titles. Limits and budget stay as they are.
+export function JevModelForm({ onSaved }: { onSaved?: () => void }) {
+  const [version, setVersion] = useState(0);
+  const engine = useLoad(`engine:jev:settings:${version}`, () => fetchEngine("jev"));
+  const keys = useLoad("provider-keys:jev", fetchProviderKeys);
+  if (engine.error) return <ErrorLine message={engine.error} />;
+  if (!engine.data) return <Skeleton className="h-20 w-full" />;
+  return (
+    <JevModelFields
+      key={version}
+      engine={engine.data}
+      keys={keys.data ?? null}
+      onSaved={() => {
+        setVersion((v) => v + 1);
+        onSaved?.();
+      }}
+    />
+  );
+}
+
+function JevModelFields({ engine, keys, onSaved }: { engine: Engine; keys: ProviderKey[] | null; onSaved: () => void }) {
+  const s = engine.settings;
+  const [provider, setProvider] = useState<Provider>(s.provider);
+  const [model, setModel] = useState(s.model);
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const label = JEV_PROVIDERS.find((p) => p.value === provider)?.label ?? provider;
+  const hasKey = keys?.some((k) => k.provider === provider) ?? true;
+  const changed = provider !== s.provider || model.trim() !== s.model;
+
+  function pickProvider(value: string) {
+    const next = value as Provider;
+    if (next !== provider) setModel(JEV_PROVIDERS.find((p) => p.value === next)?.defaultModel ?? "");
+    setProvider(next);
+  }
+
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    if (!model.trim()) return setError("Enter the model");
+    setSaving(true);
+    setError(null);
+    try {
+      await setEngineConfig("jev", { provider, model: model.trim(), daily: s.daily_titles, budget: Number(s.monthly_budget_usd) });
+      toast.success(`Jev now uses ${label} · ${model.trim()}`);
+      onSaved();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not save");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <form onSubmit={submit} className="flex flex-col gap-3" noValidate>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <Field label="Provider" htmlFor="jev-provider">
+          <NativeSelect id="jev-provider" value={provider} onChange={pickProvider} options={JEV_PROVIDERS.map((p) => ({ value: p.value, label: p.label }))} />
+        </Field>
+        <Field label="Model" htmlFor="jev-model">
+          <Input id="jev-model" value={model} maxLength={80} onChange={(e) => setModel(e.target.value)} />
+        </Field>
+      </div>
+      {!hasKey ? (
+        <p className="m-0 text-xs text-text-critical" role="status">
+          No {label} key in AI providers: Jev answers with the local mock until you add one.
+        </p>
+      ) : null}
+      {error ? <ErrorLine message={error} /> : null}
+      <div>
+        <Button type="submit" size="sm" disabled={saving || !changed}>
+          {saving ? <Loader2 className="animate-spin" aria-hidden="true" /> : null}
+          Save provider and model
         </Button>
       </div>
     </form>

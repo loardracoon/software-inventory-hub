@@ -9,6 +9,7 @@ import { Eyebrow } from "@/components/shared/eyebrow";
 import { Field, NativeSelect } from "@/components/shared/filters";
 import { formatDateTime, formatNumber } from "@/lib/format";
 import { useLoad } from "@/lib/use-load";
+import { JevModelForm } from "@/features/engines/settings-cards";
 import { fetchEngineStatus, resumeJev, setJevMode, type EngineStatus } from "./api";
 
 const MODES = [
@@ -59,8 +60,8 @@ export function JevCard() {
         ) : null}
       </div>
       <p className="m-0 text-sm text-text-muted">
-        Jev proposes a category for each new title ({s?.model ?? "claude-haiku-5-5"} through the AI gateway; a local mock answers while no
-        Claude key is set in AI providers). It publishes alone only at 0.95 or more in Info categories; everything else waits in the Inbox.
+        Jev proposes a category for each new title through the AI gateway, on Claude or OpenAI (a local mock answers while the chosen provider has no key in AI
+        providers). It publishes alone only at 0.95 or more in Info categories; everything else waits in the Inbox.
       </p>
       {status.loading && !s ? <Skeleton className="h-20 w-full" /> : null}
       {s ? (
@@ -79,6 +80,7 @@ export function JevCard() {
           <Field label="Mode" htmlFor="jev-mode" className="max-w-md">
             <NativeSelect id="jev-mode" value={s.mode} onChange={(v) => void change(() => setJevMode(v as EngineStatus["mode"]), "Mode changed")} options={MODES} />
           </Field>
+          <JevModelForm onSaved={() => setVersion((v) => v + 1)} />
           <dl className="m-0 grid grid-cols-1 gap-x-6 gap-y-3 text-sm sm:grid-cols-[max-content_1fr]">
             <dt className="text-text-muted">Titles today</dt>
             <dd className="m-0 text-text-strong">

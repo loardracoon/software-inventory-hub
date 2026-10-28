@@ -8,7 +8,7 @@
 import Anthropic from "npm:@anthropic-ai/sdk@0.136.0";
 import { emailAdmins, pausedEmailText } from "../_shared/admin-email.ts";
 import { fromCron as isCron, hubAdminCaller, json, serviceClient } from "../_shared/client-api.ts";
-import { ClassifyError, claudeClassifier, mockClassifier, type Classifier, type MessagesClient } from "../_shared/jev-classifier.ts";
+import { ClassifyError, claudeClassifier, mockClassifier, openaiClassifier, type Classifier, type MessagesClient } from "../_shared/jev-classifier.ts";
 import { buildSystem, type CategoryOption, type TitleInput } from "../_shared/jev-prompt.ts";
 
 const MAX_TITLES = 50;
@@ -17,14 +17,18 @@ const CONCURRENCY = 5;
 type Body = { action?: string; entry_ids?: string[]; category_slug?: string };
 type EntryRow = TitleInput & { id: string };
 
-// The Claude key from Settings (Vault) first, ANTHROPIC_API_KEY as fallback; without either, the mock.
-function classifierFor(key: string | null, model: string, system: string, slugs: string[]): Classifier {
-  const provider = Deno.env.get("JEV_PROVIDER") || (key ? "claude" : "mock");
-  if (provider === "claude") {
-    if (!key) throw new Error("JEV_PROVIDER is claude but no Claude key is set (Settings › AI providers)");
-    return claudeClassifier(new Anthropic({ apiKey: key, maxRetries: 2 }) as unknown as MessagesClient, model, system, slugs);
+const ENV_KEY: Record<string, string> = { claude: "ANTHROPIC_API_KEY", openai: "OPENAI_API_KEY" };
+
+// The provider and model come from Settings › Jev (engine_settings). The provider's key from Settings
+// (Vault) first, ANTHROPIC_API_KEY / OPENAI_API_KEY as fallback; without a key, the mock answers.
+// JEV_PROVIDER=mock forces the mock even with a key (local stacks).
+function classifierFor(provider: string, key: string | null, model: string, system: string, slugs: string[]): { classifier: Classifier; provider: string } {
+  const chosen = Deno.env.get("JEV_PROVIDER") === "mock" || !key ? "mock" : provider;
+  if (chosen === "claude") {
+    return { provider: chosen, classifier: claudeClassifier(new Anthropic({ apiKey: key!, maxRetries: 2 }) as unknown as MessagesClient, model, system, slugs) };
   }
-  return mockClassifier(slugs, { failEvery: Number(Deno.env.get("JEV_MOCK_FAIL_EVERY") ?? 0) || undefined });
+  if (chosen === "openai") return { provider: chosen, classifier: openaiClassifier((url, init) => fetch(url, init), key!, model, system, slugs) };
+  return { provider: "mock", classifier: mockClassifier(slugs, { failEvery: Number(Deno.env.get("JEV_MOCK_FAIL_EVERY") ?? 0) || undefined }) };
 }
 
 Deno.serve(async (req) => {
@@ -90,9 +94,11 @@ Deno.serve(async (req) => {
   );
   const slugs = options.map((o) => o.slug);
   let classifier: Classifier;
+  let provider: string;
   try {
-    const { data: vaultKey } = await db.rpc("get_provider_key", { p_provider: "claude" });
-    classifier = classifierFor((vaultKey as string | null) ?? Deno.env.get("ANTHROPIC_API_KEY") ?? null, settings.model, buildSystem(options), slugs);
+    const { data: vaultKey } = await db.rpc("get_provider_key", { p_provider: settings.provider });
+    const key = (vaultKey as string | null) ?? Deno.env.get(ENV_KEY[settings.provider] ?? "") ?? null;
+    ({ classifier, provider } = classifierFor(settings.provider, key, settings.model, buildSystem(options), slugs));
   } catch (e) {
     return json({ ok: false, error: (e as Error).message }, 500);
   }
@@ -112,7 +118,7 @@ Deno.serve(async (req) => {
         try {
           const result = await classifier.classify(entry);
           const { data: logged } = await db.rpc("record_ai_call", {
-            p_engine: "jev", p_model: classifier.model, p_purpose: action === "rerun" ? "reclassify" : "classify", p_run_id: runId, p_titles: 1,
+            p_engine: "jev", p_provider: provider, p_model: classifier.model, p_purpose: action === "rerun" ? "reclassify" : "classify", p_run_id: runId, p_titles: 1,
             p_input: result.usage.input, p_output: result.usage.output, p_cache_read: result.usage.cacheRead, p_cache_write: result.usage.cacheWrite,
             p_latency_ms: result.latencyMs, p_status: "ok",
           });
@@ -127,7 +133,7 @@ Deno.serve(async (req) => {
           summary.errors++;
           const err = e instanceof ClassifyError ? e : new ClassifyError((e as Error).message, null);
           const { data: logged } = await db.rpc("record_ai_call", {
-            p_engine: "jev", p_model: classifier.model, p_purpose: "classify", p_run_id: runId, p_titles: 0,
+            p_engine: "jev", p_provider: provider, p_model: classifier.model, p_purpose: "classify", p_run_id: runId, p_titles: 0,
             p_input: err.usage.input, p_output: err.usage.output, p_cache_read: err.usage.cacheRead, p_cache_write: err.usage.cacheWrite,
             p_latency_ms: null, p_status: "error", p_http_status: err.httpStatus, p_error: err.message,
           });
@@ -141,5 +147,5 @@ Deno.serve(async (req) => {
   if (admin) {
     await db.from("audit_log").insert({ user_id: admin.userId, action: `jev ${action}`, target: runId as string, data: summary });
   }
-  return json({ ok: true, provider: classifier.model === "mock" ? "mock" : "claude", ...summary });
+  return json({ ok: true, provider, model: classifier.model, ...summary });
 });

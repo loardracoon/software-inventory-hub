@@ -12,6 +12,11 @@ export const PROVIDERS: { value: Provider; label: string; defaultModel: string }
   { value: "openai", label: "OpenAI", defaultModel: "gpt-5" },
   { value: "grok", label: "Grok (xAI)", defaultModel: "grok-4" },
 ];
+// Jev classifies one title per call: Claude or OpenAI, each with a small default model.
+export const JEV_PROVIDERS: { value: Provider; label: string; defaultModel: string }[] = [
+  { value: "claude", label: "Claude (Anthropic)", defaultModel: "claude-haiku-5-5" },
+  { value: "openai", label: "OpenAI", defaultModel: "gpt-5-mini" },
+];
 export const TRIGGERS: { key: string; label: string }[] = [
   { key: "request", label: "A client opens a reclassification request" },
   { key: "sensitive_proposal", label: "Jev proposes a Review or Not allowed category" },

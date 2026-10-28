@@ -90,8 +90,7 @@ services:
       SUPABASE_DB_URL: postgres://postgres:${POSTGRES_PASSWORD}@db:5432/postgres
       CRON_SECRET: ${CRON_SECRET}
       HUB_CONSOLE_URL: ${PUBLIC_URL}
-      # Jev stays on the mock; Research uses the provider and key set in Settings (Gemini since Oct 28, 2026).
-      JEV_PROVIDER: mock
+      # Jev and Research use the provider, model and key set in Settings (no forced mock since Oct 28, 2026).
       # Admin email (digest, requests, engine pauses) through Mailu, same mailbox as the sign-in links.
       SMTP_HOST: ${SMTP_HOST}
       SMTP_PORT: "465"

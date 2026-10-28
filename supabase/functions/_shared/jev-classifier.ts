@@ -1,6 +1,6 @@
-// Jev classifiers behind one interface: Claude (Messages API, structured output, cached system prompt)
-// and a deterministic mock for local runs without a key. Runtime-neutral: the Claude client is passed
-// in, so Vitest can drive it with a fake.
+// Jev classifiers behind one interface: Claude (Messages API, structured output, cached system prompt),
+// OpenAI (Responses API, strict JSON schema) and a deterministic mock for local runs without a key.
+// Runtime-neutral: the Claude client and fetch are passed in, so Vitest can drive them with fakes.
 
 import { answerSchema, parseAnswer, titleMessage, type Answer, type TitleInput } from "./jev-prompt.ts";
 
@@ -63,6 +63,88 @@ export function claudeClassifier(client: MessagesClient, model: string, system: 
       const text = response.content.find((b) => b.type === "text")?.text ?? "";
       try {
         return { ...parseAnswer(text, slugs), usage, latencyMs: Date.now() - started };
+      } catch (error) {
+        throw new ClassifyError((error as Error).message, 200, usage);
+      }
+    },
+  };
+}
+
+// OpenAI (Responses API over REST, strict JSON schema). The system prompt goes first as instructions,
+// so OpenAI's automatic prompt caching reuses it. Reasoning models (gpt-5 family, o-series) get a low
+// reasoning effort; their reasoning tokens are billed as output and included in output_tokens.
+export type FetchLike = (url: string, init: RequestInit) => Promise<Response>;
+
+const OPENAI_URL = "https://api.openai.com/v1/responses";
+export const isReasoningModel = (model: string) => /^(gpt-5|o\d)/.test(model);
+
+type OpenAIResponse = {
+  status?: string;
+  incomplete_details?: { reason?: string } | null;
+  output?: { type: string; content?: { type: string; text?: string; refusal?: string }[] }[];
+  usage?: { input_tokens?: number; output_tokens?: number; input_tokens_details?: { cached_tokens?: number } };
+};
+
+export function openaiClassifier(fetchFn: FetchLike, key: string, model: string, system: string, slugs: string[], timeoutSeconds = 60): Classifier {
+  const schema = answerSchema(slugs);
+  return {
+    model,
+    async classify(title) {
+      const started = Date.now();
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutSeconds * 1000);
+      let res: Response;
+      let text: string;
+      try {
+        res = await fetchFn(OPENAI_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+          body: JSON.stringify({
+            model,
+            instructions: system,
+            input: titleMessage(title),
+            // Room for the reasoning tokens as well as the short JSON answer.
+            max_output_tokens: isReasoningModel(model) ? 4000 : 256,
+            ...(isReasoningModel(model) ? { reasoning: { effort: "low" } } : {}),
+            text: { format: { type: "json_schema", name: "jev_answer", strict: true, schema } },
+            store: false,
+          }),
+          signal: controller.signal,
+        });
+        text = await res.text();
+      } catch (error) {
+        const aborted = (error as Error).name === "AbortError";
+        throw new ClassifyError(aborted ? `No answer from OpenAI within ${timeoutSeconds} s` : `OpenAI request failed: ${(error as Error).message.slice(0, 200)}`, null);
+      } finally {
+        clearTimeout(timer);
+      }
+
+      if (!res.ok) {
+        let message = text.replace(/\s+/g, " ").slice(0, 200);
+        let code = "";
+        try {
+          const j = JSON.parse(text) as { error?: { message?: string; code?: string; type?: string } };
+          message = (j.error?.message ?? message).slice(0, 300);
+          code = j.error?.code ?? j.error?.type ?? "";
+        } catch {
+          // not JSON
+        }
+        // No credit left comes back as 429 insufficient_quota: treat it as billing (402, pauses Jev).
+        // Any other 429 is a rate limit: a normal error.
+        const billing = res.status === 402 || code === "insufficient_quota";
+        throw new ClassifyError(`OpenAI API error ${res.status}: ${message}`, billing ? 402 : res.status);
+      }
+
+      const r = JSON.parse(text) as OpenAIResponse;
+      const cached = r.usage?.input_tokens_details?.cached_tokens ?? 0;
+      // OpenAI's input_tokens include the cached ones; the gateway prices them apart.
+      const usage: Usage = { input: Math.max((r.usage?.input_tokens ?? 0) - cached, 0), output: r.usage?.output_tokens ?? 0, cacheRead: cached, cacheWrite: 0 };
+      const content = (r.output ?? []).filter((o) => o.type === "message").flatMap((o) => o.content ?? []);
+      if (content.some((c) => c.type === "refusal")) throw new ClassifyError("OpenAI declined to classify this title", 200, usage);
+      if (r.status === "incomplete") throw new ClassifyError(`OpenAI stopped early (${r.incomplete_details?.reason ?? "incomplete"})`, 200, usage);
+      const answer = content.filter((c) => c.type === "output_text").map((c) => c.text ?? "").join("");
+      try {
+        return { ...parseAnswer(answer, slugs), usage, latencyMs: Date.now() - started };
       } catch (error) {
         throw new ClassifyError((error as Error).message, 200, usage);
       }
