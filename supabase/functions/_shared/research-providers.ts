@@ -1,8 +1,8 @@
 // Research adapters: Claude (Anthropic SDK, web_search server tool), Gemini (Google Search grounding),
 // OpenAI (Responses API, web_search tool) and Grok (xAI, live search), plus a deterministic mock.
 // Runtime-neutral: the Claude client and fetch are injected, so Vitest drives them with fakes.
-// Gemini, OpenAI and Grok follow the providers' public docs and are NOT yet verified against the live
-// APIs (no keys); check the request shapes there before enabling them.
+// Gemini is verified against the live API (gemini-3.8-flash, 2026-10-28). OpenAI and Grok follow the
+// providers' public docs and are NOT yet verified (no keys); check the request shapes there before enabling them.
 
 export type ResearchUsage = { input: number; output: number; cacheRead: number; cacheWrite: number };
 export type ResearchAnswer = { text: string; usage: ResearchUsage; searches: number; latencyMs: number };
