@@ -30,16 +30,30 @@ export async function authenticate(req: Request, db: SupabaseClient): Promise<Ca
   return { id: row.client_id, name: row.client_name ?? "" };
 }
 
-// Console calls: the signed-in user, when listed in hub_admins (checked with the user's own JWT).
-export async function hubAdminCaller(req: Request): Promise<{ userId: string } | null> {
+export type HubRole = "admin" | "operator" | "viewer";
+
+// Console calls: the signed-in user and their Hub role (hub_members), checked with the user's own JWT.
+export async function hubCaller(req: Request): Promise<{ userId: string; role: HubRole } | null> {
   const token = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
   if (!token) return null;
   const asUser = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
     auth: { persistSession: false, autoRefreshToken: false },
     global: { headers: { Authorization: `Bearer ${token}` } },
   });
-  const [{ data: user }, { data: admin }] = await Promise.all([asUser.auth.getUser(token), asUser.rpc("is_hub_admin")]);
-  return admin === true && user.user ? { userId: user.user.id } : null;
+  const [{ data: user }, { data: role }] = await Promise.all([asUser.auth.getUser(token), asUser.rpc("hub_role")]);
+  return user.user && typeof role === "string" ? { userId: user.user.id, role: role as HubRole } : null;
+}
+
+// Admins only (settings, users, digest).
+export async function hubAdminCaller(req: Request): Promise<{ userId: string } | null> {
+  const caller = await hubCaller(req);
+  return caller?.role === "admin" ? { userId: caller.userId } : null;
+}
+
+// Admins and operators (curating: run Jev, run Research).
+export async function hubCuratorCaller(req: Request): Promise<{ userId: string } | null> {
+  const caller = await hubCaller(req);
+  return caller && (caller.role === "admin" || caller.role === "operator") ? { userId: caller.userId } : null;
 }
 
 // pg_cron calls carry x-cron-secret (CRON_SECRET).

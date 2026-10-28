@@ -13,10 +13,12 @@ import { PageHeader } from "@/components/shared/page-header";
 import { fetchLevel2Categories, fetchRuns, runJev } from "@/features/jev/api";
 import { formatDateTime, formatNumber } from "@/lib/format";
 import { useLoad } from "@/lib/use-load";
+import { useHubRole } from "@/features/auth/auth-context";
 
 const usd = (v: number) => `USD ${Number(v).toFixed(4)}`;
 
 export function RunsPage() {
+  const { canCurate } = useHubRole();
   const [version, setVersion] = useState(0);
   const refresh = () => setVersion((v) => v + 1);
   const runs = useLoad(`runs:${version}`, fetchRuns);
@@ -45,6 +47,7 @@ export function RunsPage() {
       <p className="m-0 text-sm text-text-muted">
         What Jev published on its own, with Revert, is in <Link to="/engines">Engines &amp; usage</Link>.
       </p>
+      {canCurate ? (
       <Card className="gap-4 px-6">
         <Eyebrow>Re-run Jev</Eyebrow>
         <p className="m-0 text-sm text-text-muted">After a taxonomy change, re-classify the published titles of a category. Results arrive as proposals; nothing is published automatically.</p>
@@ -63,6 +66,7 @@ export function RunsPage() {
           </Button>
         </div>
       </Card>
+      ) : null}
 
       <h2 className="m-0 text-xl">Runs</h2>
       <Card className="px-0 py-0">

@@ -31,6 +31,7 @@ import {
   runJev,
   type Proposal,
 } from "@/features/jev/api";
+import { useHubRole } from "@/features/auth/auth-context";
 import { formatDate, formatNumber } from "@/lib/format";
 import { useLoad } from "@/lib/use-load";
 
@@ -69,6 +70,7 @@ function NewTitles({ version, onRun }: { version: number; onRun: () => void }) {
   const titles = useLoad(`pending:${version}`, fetchPendingTitles);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [running, setRunning] = useState(false);
+  const { canCurate } = useHubRole();
   const rows = titles.data ?? [];
   const toggle = (id: string) => setSelected((prev) => {
     const next = new Set(prev);
@@ -96,11 +98,15 @@ function NewTitles({ version, onRun }: { version: number; onRun: () => void }) {
   return (
     <Card className="gap-4 px-0 py-0">
       <div className="flex flex-wrap items-center justify-between gap-3 px-6 pt-5">
-        <p className="m-0 text-sm text-text-muted">Pending titles, most reported first. Select up to {MAX_RUN} to classify now.</p>
-        <Button size="sm" onClick={() => void run()} disabled={running || selected.size === 0}>
-          {running ? <Loader2 className="animate-spin" aria-hidden="true" /> : <Sparkles aria-hidden="true" />}
-          Run Jev on selected ({selected.size})
-        </Button>
+        <p className="m-0 text-sm text-text-muted">
+          Pending titles, most reported first.{canCurate ? ` Select up to ${MAX_RUN} to classify now.` : ""}
+        </p>
+        {canCurate ? (
+          <Button size="sm" onClick={() => void run()} disabled={running || selected.size === 0}>
+            {running ? <Loader2 className="animate-spin" aria-hidden="true" /> : <Sparkles aria-hidden="true" />}
+            Run Jev on selected ({selected.size})
+          </Button>
+        ) : null}
       </div>
       {titles.error ? <ErrorLine message={titles.error} /> : null}
       {rows.length === 0 && !titles.loading ? (
@@ -152,6 +158,7 @@ function NewTitles({ version, onRun }: { version: number; onRun: () => void }) {
 
 function Proposals({ proposals, error, onDecided }: { proposals: Proposal[]; error: string | null; onDecided: () => void }) {
   const categories = useLoad("level2", fetchLevel2Categories);
+  const { canCurate } = useHubRole();
   const groups = useMemo(() => {
     const map = new Map<string, Proposal[]>();
     for (const p of proposals) map.set(p.category_slug, [...(map.get(p.category_slug) ?? []), p]);
@@ -185,6 +192,7 @@ function Proposals({ proposals, error, onDecided }: { proposals: Proposal[]; err
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="m-0 text-sm text-text-muted">Grouped by the category Jev proposes. Accepting publishes the entry to every client.</p>
+        {canCurate ? (
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button size="sm" variant="secondary" disabled={eligible === 0}>
@@ -205,6 +213,7 @@ function Proposals({ proposals, error, onDecided }: { proposals: Proposal[]; err
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+        ) : null}
       </div>
       {groups.map((group) => (
         <Card key={group[0].category_slug} className="gap-3 px-0 py-0">
@@ -216,7 +225,7 @@ function Proposals({ proposals, error, onDecided }: { proposals: Proposal[]; err
           <Table aria-label={`Proposals for ${group[0].category_name}`}>
             <TableBody>
               {group.map((p) => (
-                <ProposalRow key={`${p.run_id}:${p.entry_id}`} p={p} categories={categories.data ?? []} onDecide={decide} />
+                <ProposalRow key={`${p.run_id}:${p.entry_id}`} p={p} categories={categories.data ?? []} onDecide={canCurate ? decide : null} />
               ))}
             </TableBody>
           </Table>
@@ -233,11 +242,13 @@ function ProposalRow({
 }: {
   p: Proposal;
   categories: { id: string; name: string; parent: { name: string } | null }[];
-  onDecide: (p: Proposal, accept: boolean, categoryId?: string) => Promise<void>;
+  // null for viewers: they see the proposal, not the actions.
+  onDecide: ((p: Proposal, accept: boolean, categoryId?: string) => Promise<void>) | null;
 }) {
   const [other, setOther] = useState("");
   const [busy, setBusy] = useState(false);
   const act = async (accept: boolean, categoryId?: string) => {
+    if (!onDecide) return;
     setBusy(true);
     await onDecide(p, accept, categoryId);
     setBusy(false);
@@ -255,6 +266,7 @@ function ProposalRow({
       <TableCell className="w-48">
         <ProbabilityBar value={p.probability} />
       </TableCell>
+      {onDecide ? (
       <TableCell>
         <div className="flex flex-wrap items-center justify-end gap-2">
           <Button size="sm" onClick={() => void act(true)} disabled={busy}>
@@ -290,6 +302,7 @@ function ProposalRow({
           </Button>
         </div>
       </TableCell>
+      ) : null}
     </TableRow>
   );
 }

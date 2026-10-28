@@ -24,6 +24,7 @@ import {
   type EntryDetail,
   type Draft,
 } from "@/features/dictionary/api";
+import { useHubRole } from "@/features/auth/auth-context";
 import { runResearch } from "@/features/engines/api";
 import { DossierCard } from "@/features/engines/dossier-card";
 import { runJev } from "@/features/jev/api";
@@ -36,6 +37,7 @@ const TEXTAREA =
   "w-full min-w-0 rounded-sm border-[1.5px] border-input bg-surface-raised px-3 py-2 text-[15px] text-text-body focus-visible:border-action focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:outline-none";
 
 export function EntryPage() {
+  const { canCurate } = useHubRole();
   const { id = "" } = useParams();
   const [version, setVersion] = useState(0);
   const reload = () => setVersion((v) => v + 1);
@@ -90,6 +92,7 @@ export function EntryPage() {
         title={e?.canonical_name ?? "…"}
         description={e ? <span className="font-mono">{e.match_key}</span> : undefined}
         actions={
+          canCurate ? (
           <div className="flex flex-wrap gap-2">
             <Button size="sm" variant="secondary" onClick={() => void research()} disabled={researchBusy || !e}>
               {researchBusy ? <Loader2 className="animate-spin" aria-hidden="true" /> : <Globe aria-hidden="true" />}
@@ -100,6 +103,7 @@ export function EntryPage() {
               Run Jev
             </Button>
           </div>
+          ) : undefined
         }
       />
       {!e ? (
@@ -107,7 +111,7 @@ export function EntryPage() {
       ) : (
         <>
           <Summary e={e} />
-          <EditCard key={`${e.revision}:${data.data?.draft?.saved_at ?? ""}`} e={e} draft={data.data?.draft ?? null} options={level2Options(categories.data ?? [])} onChanged={reload} />
+          {canCurate ? <EditCard key={`${e.revision}:${data.data?.draft?.saved_at ?? ""}`} e={e} draft={data.data?.draft ?? null} options={level2Options(categories.data ?? [])} onChanged={reload} /> : null}
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <Card className="gap-3 px-6">
               <Eyebrow>Jev results</Eyebrow>

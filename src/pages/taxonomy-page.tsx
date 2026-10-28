@@ -13,10 +13,12 @@ import { PageHeader } from "@/components/shared/page-header";
 import { deprecateCategory, fetchCategories, level2Options, updateCategory, type CategoryRow } from "@/features/dictionary/api";
 import { AttentionBadge } from "@/features/jev/jev-bits";
 import { useLoad } from "@/lib/use-load";
+import { useHubRole } from "@/features/auth/auth-context";
 
 type Editing = { kind: "edit" | "deprecate"; category: CategoryRow };
 
 export function TaxonomyPage() {
+  const { isAdmin } = useHubRole();
   const [version, setVersion] = useState(0);
   const categories = useLoad(`categories:${version}`, fetchCategories);
   const [editing, setEditing] = useState<Editing | null>(null);
@@ -36,9 +38,11 @@ export function TaxonomyPage() {
         <Card key={p.id} className="gap-3 px-6">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="m-0 text-lg">{p.name}</h2>
-            <Button size="sm" variant="ghost" onClick={() => setEditing({ kind: "edit", category: p })}>
-              Edit
-            </Button>
+            {isAdmin ? (
+              <Button size="sm" variant="ghost" onClick={() => setEditing({ kind: "edit", category: p })}>
+                Edit
+              </Button>
+            ) : null}
           </div>
           <ul className="m-0 flex list-none flex-col gap-3 p-0">
             {rows
@@ -60,7 +64,7 @@ export function TaxonomyPage() {
                     </span>
                     {c.description ? <span className="text-sm text-text-muted">{c.description}</span> : null}
                   </div>
-                  {!c.deprecated ? (
+                  {!c.deprecated && isAdmin ? (
                     <span className="flex gap-1">
                       <Button size="sm" variant="ghost" onClick={() => setEditing({ kind: "edit", category: c })}>
                         Edit

@@ -51,16 +51,21 @@ export async function fetchEntry(id: string) {
     db().from("classification_results").select("run_id, probability, accepted, accepted_at, category:category_id(name), run:run_id(started_at, model)").eq("entry_id", id),
     db()
       .from("reclassification_requests")
-      .select("public_id, status, reason, evidence_url, admin_note, created_at, client:client_id(name), suggested:suggested_category_id(name)")
+      .select("public_id, status, reason, evidence_url, admin_note, created_at, client_id, suggested:suggested_category_id(name)")
       .eq("entry_id", id)
       .order("created_at", { ascending: false }),
     db().from("entry_drafts").select("*").eq("entry_id", id).maybeSingle(),
   ]);
+  // Client names come from client_names (every member reads them; the clients table is admin-only).
+  const requestRows = (orThrow(requests) ?? []) as unknown as (Omit<EntryRequest, "client"> & { client_id: string })[];
+  const clientIds = [...new Set(requestRows.map((r) => r.client_id))];
+  const names = clientIds.length ? ((orThrow(await db().from("client_names").select("id, name").in("id", clientIds)) ?? []) as { id: string; name: string }[]) : [];
+  const nameOf = new Map(names.map((n) => [n.id, n.name]));
   return {
     entry: orThrow(entry) as unknown as EntryDetail | null,
     revisions: (orThrow(revisions) ?? []) as Revision[],
     results: ((orThrow(results) ?? []) as unknown as JevResult[]).sort((a, b) => (b.run?.started_at ?? "").localeCompare(a.run?.started_at ?? "")),
-    requests: (orThrow(requests) ?? []) as unknown as EntryRequest[],
+    requests: requestRows.map(({ client_id, ...r }) => ({ ...r, client: nameOf.has(client_id) ? { name: nameOf.get(client_id)! } : null })),
     draft: orThrow(draft) as Draft | null,
   };
 }

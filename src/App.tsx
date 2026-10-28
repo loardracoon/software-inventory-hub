@@ -1,6 +1,6 @@
 import { Route, Routes } from "react-router";
 import { AppLayout } from "@/components/layout/app-layout";
-import { RequireAuth } from "@/features/auth/require-auth";
+import { RequireAuth, RequireRole } from "@/features/auth/require-auth";
 import { ClientsPage } from "@/pages/clients-page";
 import { DictionaryPage } from "@/pages/dictionary-page";
 import { EnginesPage } from "@/pages/engines-page";
@@ -27,10 +27,10 @@ export default function App() {
         <Route path="dictionary" element={<DictionaryPage />} />
         <Route path="dictionary/:id" element={<EntryPage />} />
         <Route path="runs" element={<RunsPage />} />
-        <Route path="engines" element={<EnginesPage />} />
+        <Route path="engines" element={<RequireRole access="curate"><EnginesPage /></RequireRole>} />
         <Route path="taxonomy" element={<TaxonomyPage />} />
-        <Route path="clients" element={<ClientsPage />} />
-        <Route path="settings" element={<SettingsPage />} />
+        <Route path="clients" element={<RequireRole access="admin"><ClientsPage /></RequireRole>} />
+        <Route path="settings" element={<RequireRole access="admin"><SettingsPage /></RequireRole>} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

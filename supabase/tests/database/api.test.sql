@@ -3,7 +3,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
-truncate public.clients, public.classification_runs, public.audit_log, public.hub_admins, public.notifications cascade;
+truncate public.clients, public.classification_runs, public.audit_log, public.hub_members, public.access_rules, public.notifications cascade;
 delete from public.entries;
 
 select plan(31);
@@ -11,7 +11,8 @@ select plan(31);
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-00000000000a', 'admin@example.com'),
   ('00000000-0000-0000-0000-00000000000b', 'someone@example.com');
-insert into public.hub_admins (user_id) values ('00000000-0000-0000-0000-00000000000a');
+delete from public.hub_members;
+insert into public.hub_members (user_id, email, role) values ('00000000-0000-0000-0000-00000000000a', 'admin@example.com', 'admin');
 
 create function pg_temp.as_user(uid text) returns void language plpgsql as $$
 begin

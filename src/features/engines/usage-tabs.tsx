@@ -16,6 +16,7 @@ import { fetchAutoPublished, revertAutoPublish } from "@/features/jev/api";
 import { formatDate, formatDateTime, formatNumber } from "@/lib/format";
 import { useLoad } from "@/lib/use-load";
 import { EVENTS_PAGE, fetchEvents, fetchMissingPrices, fetchPrices, PROVIDERS, setPrice, type MissingPrice, type PriceInput } from "./api";
+import { useHubRole } from "@/features/auth/auth-context";
 
 // Auto-published: what Jev published alone; Revert restores the previous category (or withdraws the entry).
 export function AutoPublishedTab() {
@@ -77,6 +78,7 @@ const EMPTY_PRICE: PriceInput = { engine: "research", provider: "claude", model:
 
 // Price table: the current price per engine and model (older rows are history; past calls keep their cost).
 export function PricesTab() {
+  const { isAdmin } = useHubRole();
   const [version, setVersion] = useState(0);
   const prices = useLoad(`prices:${version}`, fetchPrices);
   const missing = useLoad(`missing-prices:${version}`, fetchMissingPrices);
@@ -100,10 +102,12 @@ export function PricesTab() {
             </strong>{" "}
             Its calls count as USD 0, so the budget cannot stop it.
           </span>
-          <Button size="sm" onClick={() => setEditing({ ...EMPTY_PRICE, engine: m.engine, provider: m.provider, model: m.model })}>
-            <Plus aria-hidden="true" />
-            Add price
-          </Button>
+          {isAdmin ? (
+            <Button size="sm" onClick={() => setEditing({ ...EMPTY_PRICE, engine: m.engine, provider: m.provider, model: m.model })}>
+              <Plus aria-hidden="true" />
+              Add price
+            </Button>
+          ) : null}
         </div>
       ))}
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -111,10 +115,12 @@ export function PricesTab() {
           <input type="checkbox" className="size-4 accent-action" checked={history} onChange={(e) => setHistory(e.target.checked)} />
           Show earlier prices
         </label>
-        <Button size="sm" variant="secondary" onClick={() => setEditing(EMPTY_PRICE)}>
-          <Plus aria-hidden="true" />
-          New price
-        </Button>
+        {isAdmin ? (
+          <Button size="sm" variant="secondary" onClick={() => setEditing(EMPTY_PRICE)}>
+            <Plus aria-hidden="true" />
+            New price
+          </Button>
+        ) : null}
       </div>
       {prices.error ? <ErrorLine message={prices.error} /> : null}
       <Card className="px-0 py-0">
@@ -157,7 +163,7 @@ export function PricesTab() {
                     )}
                   </TableCell>
                   <TableCell className="text-right">
-                    {p.current ? (
+                    {p.current && isAdmin ? (
                       <Button size="sm" variant="ghost" aria-label={`Edit the price of ${p.engine} ${p.model}`} title="Edit" onClick={() => setEditing(p)}>
                         <Pencil aria-hidden="true" />
                       </Button>

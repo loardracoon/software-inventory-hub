@@ -2,14 +2,15 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
-truncate public.hub_admins, public.notifications;
+truncate public.hub_members, public.access_rules, public.notifications;
 
 select plan(9);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-00000000000a', 'admin@example.com'),
   ('00000000-0000-0000-0000-00000000000b', 'someone@example.com');
-insert into public.hub_admins (user_id) values ('00000000-0000-0000-0000-00000000000a');
+delete from public.hub_members;
+insert into public.hub_members (user_id, email, role) values ('00000000-0000-0000-0000-00000000000a', 'admin@example.com', 'admin');
 insert into public.notifications (type, ref_id, title) values
   ('reclassification_request', 'REQ-0001', 'AnyDesk: Remote access requested by Acme'),
   ('new_title', null, '12 new titles reported');
@@ -22,7 +23,7 @@ end $$;
 
 set local role anon;
 select throws_ok('select count(*) from public.notifications', '42501', null, 'anon cannot read notifications');
-select throws_ok('select count(*) from public.hub_admins', '42501', null, 'anon cannot read hub_admins');
+select throws_ok('select count(*) from public.hub_members', '42501', null, 'anon cannot read hub_members');
 select throws_ok('select public.is_hub_admin()', '42501', null, 'anon cannot call is_hub_admin');
 reset role;
 

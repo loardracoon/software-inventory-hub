@@ -17,7 +17,7 @@ The single source of truth for software titles (programs, browser and IDE extens
 - Jev therefore does not use Lovable AI: model calls go through `ai_gateway` to the Claude API (key in `supabase/functions/.env`, never in the repo). Wherever this file or the spec says "Lovable AI", read "the Jev provider behind `ai_gateway`".
 - Migrations go in `supabase/migrations/`, Edge Functions in `supabase/functions/`, pgTAP tests in `supabase/tests/database/`.
 - Never reset the Hub database once it holds real dictionary work; use a second stack for destructive tests (see `../client/CLAUDE.md`).
-- Sign-ups are off (`[auth] enable_signup = false`). Admin accounts come from `npm run admin:add -- <email>`; only users in `hub_admins` get past the access-denied page, and RLS gives anonymous and non-admin users nothing.
+- Users and access (same model as the client): roles in `hub_members` (`hub_role`: admin changes everything; operator curates: edits and publishes entries, decides proposals and requests, runs Jev and Research, reads Engines & usage; viewer reads and searches). `is_hub_admin()` = role admin, `can_curate()` = admin or operator, `is_hub_member()` = any role; `clients`, `audit_log` and `provider_keys` stay admin-only (members read client names through `client_names`). Sign-ups are on, gated by `access_rules` (an exact email with any role, or an email domain as viewer or operator, never admin): trigger `before_auth_user_created` refuses an Auth sign-up without a rule (except the first account of an empty Hub, which becomes admin) and `on_auth_user_created` adds the member with the rule's role. Settings › Users and access (admins) lists users, changes roles, invites by email through the Edge Function `manage-users` (email rule + one-click invitation or magic link) and manages domains; every change is audited. The console hides actions a role cannot take (`useHubRole()`), and the database refuses them anyway.
 
 ## Stack
 
@@ -31,7 +31,7 @@ The single source of truth for software titles (programs, browser and IDE extens
 - `node scripts/generate-taxonomy-seed.mjs` rewrites the taxonomy seed migration from `docs/taxonomy.json` (keep the file identical to `../client/docs/taxonomy.json`).
 - `npm run cron:configure` (`-- --off`): writes the Vault secrets pg_cron needs for `jev-auto`, `research-tick` and `daily-digest` (`CRON_SECRET` from `supabase/functions/.env`).
 - Admin email (`_shared/admin-email.ts`): SMTP when `SMTP_HOST` is set (`_shared/smtp.ts`; port 465 = implicit TLS with login, other ports plain and only without login — the local Mailpit is `supabase_inbucket_dictionary-hub:1025`), otherwise Resend (`RESEND_API_KEY`, `HUB_EMAIL_FROM`), otherwise skipped. The main Hub is the VPS (`deploy/vps/`), which sends through Mailu.
-- `npm run admin:add -- <email>`: create a hub admin (local stack by default; `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` for a remote project).
+- `npm run admin:add -- <email>`: first admin or access recovery: admin email rule, account and admin membership (local stack by default; `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` for a remote project).
 - `npm run dev` (Vite on 5175 without Docker), `npm run build`, `npm test` (Vitest), `npm run lint`, `npm run test:db` (pgTAP), `npm run db:types`, `npm run functions:check`.
 - Mailpit (magic links): http://127.0.0.1:56324. Studio: http://127.0.0.1:56323.
 

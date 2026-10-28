@@ -23,7 +23,21 @@ export type Database = {
           }
         },"public": {
           Tables: {
-            "ai_calls": {
+            "access_rules": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"id": string,"kind": string,"role": Database["public"]['Enums']["hub_role"],"value": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"id"?: string,"kind": string,"role": Database["public"]['Enums']["hub_role"],"value": string
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"id"?: string,"kind"?: string,"role"?: Database["public"]['Enums']["hub_role"],"value"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"ai_calls": {
                   Row: {
                     "cache_read_tokens": number,"cache_write_tokens": number,"cost_usd": number,"created_at": string,"engine": string,"entry_ids": (string)[] | null,"error": string | null,"http_status": number | null,"id": number,"input_tokens": number,"latency_ms": number | null,"model": string,"output_tokens": number,"provider": string | null,"purpose": string,"run_id": string | null,"searches": number,"status": string,"titles": number
                   }
@@ -180,6 +194,12 @@ isOneToOne: false
                   }
                   Relationships: [
                     {
+      foreignKeyName: "client_rate_client_id_fkey"
+      columns: ["client_id"]
+isOneToOne: false
+      referencedRelation: "client_names"
+      referencedColumns: ["id"]
+    },{
       foreignKeyName: "client_rate_client_id_fkey"
       columns: ["client_id"]
 isOneToOne: false
@@ -343,16 +363,16 @@ isOneToOne: false
       referencedColumns: ["entry_id"]
     }
                   ]
-                },"hub_admins": {
+                },"hub_members": {
                   Row: {
-                    "added_at": string,"user_id": string
+                    "added_at": string,"email": string,"role": Database["public"]['Enums']["hub_role"],"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "added_at"?: string,"user_id": string
+                    "added_at"?: string,"email": string,"role": Database["public"]['Enums']["hub_role"],"user_id": string
                   }
                   Update: {
-                    "added_at"?: string,"user_id"?: string
+                    "added_at"?: string,"email"?: string,"role"?: Database["public"]['Enums']["hub_role"],"user_id"?: string
                   }
                   Relationships: [
                     
@@ -398,6 +418,12 @@ isOneToOne: false
                   }
                   Relationships: [
                     {
+      foreignKeyName: "reclassification_requests_client_id_fkey"
+      columns: ["client_id"]
+isOneToOne: false
+      referencedRelation: "client_names"
+      referencedColumns: ["id"]
+    },{
       foreignKeyName: "reclassification_requests_client_id_fkey"
       columns: ["client_id"]
 isOneToOne: false
@@ -509,6 +535,12 @@ isOneToOne: false
       foreignKeyName: "submissions_client_id_fkey"
       columns: ["client_id"]
 isOneToOne: false
+      referencedRelation: "client_names"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "submissions_client_id_fkey"
+      columns: ["client_id"]
+isOneToOne: false
       referencedRelation: "clients"
       referencedColumns: ["id"]
     }
@@ -516,7 +548,21 @@ isOneToOne: false
                 }
           }
           Views: {
-            "v_missing_prices": {
+            "client_names": {
+                  Row: {
+                    "id": string,"name": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                           "id"?: string | null,"name"?: string | null
+                         }
+                        Update: {
+                           "id"?: string | null,"name"?: string | null
+                         }
+                        Relationships: [
+                    
+                  ]
+                },"v_missing_prices": {
                   Row: {
                     "engine": string,"model": string,"provider": string
                   }
@@ -614,11 +660,20 @@ isOneToOne: false
             "accept_all_above":
 { Args: { "p_min"?: number }; Returns: number
                            },
+"access_role_for":
+{ Args: { "p_email": string }; Returns: Database["public"]['Enums']["hub_role"]
+                           },
+"add_access_rule":
+{ Args: { "p_kind": string,"p_role": Database["public"]['Enums']["hub_role"],"p_value": string }; Returns: string
+                           },
 "admin_pause_engine":
 { Args: { "p_engine": string }; Returns: undefined
                            },
 "build_digest":
 { Args: Record<PropertyKey, never>; Returns: Json
+                           },
+"can_curate":
+{ Args: Record<PropertyKey, never>; Returns: boolean
                            },
 "check_jev_acceptance":
 { Args: Record<PropertyKey, never>; Returns: undefined
@@ -641,6 +696,9 @@ isOneToOne: false
                            },
 "decide_proposal":
 { Args: { "p_accept": boolean,"p_category_id"?: string,"p_entry_id": string,"p_run_id": string }; Returns: string
+                           },
+"delete_access_rule":
+{ Args: { "p_id": string }; Returns: undefined
                            },
 "deprecate_category":
 { Args: { "p_category_id": string,"p_reason": string,"p_replacement_id": string }; Returns: number
@@ -670,11 +728,17 @@ isOneToOne: false
 "enqueue_research":
 { Args: { "p_entry_id": string,"p_trigger": string }; Returns: boolean
                            },
+"ensure_hub_member":
+{ Args: { "p_email": string }; Returns: boolean
+                           },
 "get_provider_key":
 { Args: { "p_provider": string }; Returns: string
                            },
 "hub_admin_emails":
 { Args: Record<PropertyKey, never>; Returns: string[]
+                           },
+"hub_role":
+{ Args: Record<PropertyKey, never>; Returns: Database["public"]['Enums']["hub_role"]
                            },
 "invoke_digest":
 { Args: Record<PropertyKey, never>; Returns: number
@@ -688,6 +752,9 @@ isOneToOne: false
 "is_hub_admin":
 { Args: Record<PropertyKey, never>; Returns: boolean
                            },
+"is_hub_member":
+{ Args: Record<PropertyKey, never>; Returns: boolean
+                           },
 "jev_finish_run":
 { Args: { "p_run_id": string,"p_status": Database["public"]['Enums']["run_status"] }; Returns: undefined
                            },
@@ -699,6 +766,11 @@ isOneToOne: false
                            },
 "jev_store_result":
 { Args: { "p_category_slug": string,"p_entry_id": string,"p_probability": number,"p_run_id": string }; Returns: string
+                           },
+"list_users":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "access": string,"added_at": string,"email": string,"id": string,"last_sign_in_at": string,"role": Database["public"]['Enums']["hub_role"]
+            }[]
                            },
 "new_client_key":
 { Args: Record<PropertyKey, never>; Returns: string
@@ -717,6 +789,9 @@ isOneToOne: false
                            },
 "record_ai_call":
 { Args: { "p_cache_read": number,"p_cache_write": number,"p_engine": string,"p_entry_ids"?: (string)[],"p_error"?: string,"p_http_status"?: number,"p_input": number,"p_latency_ms": number,"p_model": string,"p_output": number,"p_provider"?: string,"p_purpose": string,"p_run_id": string,"p_searches"?: number,"p_status": string,"p_titles": number }; Returns: Json
+                           },
+"remove_user":
+{ Args: { "p_user_id": string }; Returns: undefined
                            },
 "request_statuses":
 { Args: { "p_client_id": string,"p_ids": (string)[] }; Returns: Json
@@ -761,6 +836,9 @@ isOneToOne: false
 "set_provider_key":
 { Args: { "p_key": string,"p_provider": string }; Returns: undefined
                            },
+"set_user_role":
+{ Args: { "p_role": Database["public"]['Enums']["hub_role"],"p_user_id": string }; Returns: undefined
+                           },
 "submit_titles":
 { Args: { "p_client_id": string,"p_titles": Json }; Returns: Json
                            },
@@ -769,7 +847,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "attention_level": "info"|"review"|"not_allowed","client_status": "active"|"revoked","entry_kind": "program"|"extension"|"ide_extension"|"package","entry_method": "rule"|"jev"|"jev_auto"|"manual","entry_status": "pending"|"proposed"|"published"|"deprecated","event_type": "published"|"reclassified"|"description_changed"|"deprecated"|"category_changed","request_status": "open"|"accepted"|"rejected"|"superseded","run_status": "running"|"finished"|"failed"|"cancelled"
+            "attention_level": "info"|"review"|"not_allowed","client_status": "active"|"revoked","entry_kind": "program"|"extension"|"ide_extension"|"package","entry_method": "rule"|"jev"|"jev_auto"|"manual","entry_status": "pending"|"proposed"|"published"|"deprecated","event_type": "published"|"reclassified"|"description_changed"|"deprecated"|"category_changed","hub_role": "admin"|"operator"|"viewer","request_status": "open"|"accepted"|"rejected"|"superseded","run_status": "running"|"finished"|"failed"|"cancelled"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -889,7 +967,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "attention_level": ["info", "review", "not_allowed"],"client_status": ["active", "revoked"],"entry_kind": ["program", "extension", "ide_extension", "package"],"entry_method": ["rule", "jev", "jev_auto", "manual"],"entry_status": ["pending", "proposed", "published", "deprecated"],"event_type": ["published", "reclassified", "description_changed", "deprecated", "category_changed"],"request_status": ["open", "accepted", "rejected", "superseded"],"run_status": ["running", "finished", "failed", "cancelled"]
+            "attention_level": ["info", "review", "not_allowed"],"client_status": ["active", "revoked"],"entry_kind": ["program", "extension", "ide_extension", "package"],"entry_method": ["rule", "jev", "jev_auto", "manual"],"entry_status": ["pending", "proposed", "published", "deprecated"],"event_type": ["published", "reclassified", "description_changed", "deprecated", "category_changed"],"hub_role": ["admin", "operator", "viewer"],"request_status": ["open", "accepted", "rejected", "superseded"],"run_status": ["running", "finished", "failed", "cancelled"]
           }
         }
 } as const

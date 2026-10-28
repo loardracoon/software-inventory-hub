@@ -1,4 +1,6 @@
-// Adds a hub admin: creates the Auth account (sign-ups are off) and lists it in hub_admins.
+// Adds a hub admin: an admin email rule (so Auth accepts the account), the Auth account, and the admin
+// membership in hub_members. Use it for the first admin or to recover access; afterwards admins add people
+// in Settings › Users and access.
 // Usage: npm run admin:add -- someone@example.com
 // Local stack by default (URL and service role key from `supabase status`); for a remote project set
 // SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in the environment. The key is never printed.
@@ -38,6 +40,16 @@ async function findUser() {
   return null;
 }
 
+async function upsert(table, onConflict, row) {
+  const res = await fetch(`${url}/rest/v1/${table}?on_conflict=${onConflict}`, {
+    method: "POST",
+    headers: { ...headers, Prefer: "resolution=merge-duplicates,return=minimal" },
+    body: JSON.stringify(row),
+  });
+  if (!res.ok) throw new Error(`Writing ${table} failed: HTTP ${res.status} ${await res.text()}`);
+}
+
+await upsert("access_rules", "kind,value", { kind: "email", value: email, role: "admin" });
 let user = await findUser();
 if (!user) {
   const res = await fetch(`${url}/auth/v1/admin/users`, { method: "POST", headers, body: JSON.stringify({ email, email_confirm: true }) });
@@ -45,10 +57,5 @@ if (!user) {
   user = await res.json();
 }
 
-const res = await fetch(`${url}/rest/v1/hub_admins`, {
-  method: "POST",
-  headers: { ...headers, Prefer: "resolution=ignore-duplicates,return=minimal" },
-  body: JSON.stringify({ user_id: user.id }),
-});
-if (!res.ok) throw new Error(`Adding to hub_admins failed: HTTP ${res.status} ${await res.text()}`);
+await upsert("hub_members", "user_id", { user_id: user.id, email, role: "admin" });
 console.log(`${email} is a hub admin. Sign in at the console with a magic link.`);

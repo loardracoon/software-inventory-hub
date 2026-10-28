@@ -1,4 +1,4 @@
-// Jev runs. Called by a hub admin (console, user JWT) or by pg_cron (x-cron-secret, action "auto").
+// Jev runs. Called by a hub admin or operator (console, user JWT) or by pg_cron (x-cron-secret, action "auto").
 //   run_selected { entry_ids }          manual run on chosen titles (max 50)
 //   rerun { entry_ids } | { category_slug }  re-classify published entries; results are proposals only
 //   auto                                 every interval_hours: pending titles reported by min_reports+ clients
@@ -7,7 +7,7 @@
 
 import Anthropic from "npm:@anthropic-ai/sdk@0.136.0";
 import { emailAdmins, pausedEmailText } from "../_shared/admin-email.ts";
-import { fromCron as isCron, hubAdminCaller, json, serviceClient } from "../_shared/client-api.ts";
+import { fromCron as isCron, hubCuratorCaller, json, serviceClient } from "../_shared/client-api.ts";
 import { ClassifyError, claudeClassifier, mockClassifier, openaiClassifier, type Classifier, type MessagesClient } from "../_shared/jev-classifier.ts";
 import { buildSystem, type CategoryOption, type TitleInput } from "../_shared/jev-prompt.ts";
 
@@ -35,8 +35,8 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
   const db = serviceClient();
   const fromCron = isCron(req);
-  const admin = fromCron ? null : await hubAdminCaller(req);
-  if (!fromCron && !admin) return json({ error: "Only hub admins can run Jev" }, 403);
+  const admin = fromCron ? null : await hubCuratorCaller(req);
+  if (!fromCron && !admin) return json({ error: "Only hub admins and operators can run Jev" }, 403);
 
   const body = (await req.json().catch(() => ({}))) as Body;
   const action = body.action ?? "";
@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
       .limit(Math.min(settings.batch_size, MAX_TITLES));
     entries = (data ?? []) as EntryRow[];
   } else if (action === "run_selected" || action === "rerun") {
-    if (!admin) return json({ error: "Only hub admins can run Jev" }, 403);
+    if (!admin) return json({ error: "Only hub admins and operators can run Jev" }, 403);
     let q = db.from("entries").select(cols).neq("status", "deprecated");
     if (body.category_slug && action === "rerun") {
       const { data: cat } = await db.from("categories").select("id").eq("slug", body.category_slug).maybeSingle();

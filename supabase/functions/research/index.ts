@@ -1,10 +1,10 @@
-// Research engine. A hub admin runs it on one entry (console "Research"), or pg_cron's research-tick
+// Research engine. A hub admin or operator runs it on one entry (console "Research"), or pg_cron's research-tick
 // processes the queue filled by the triggers (requests, sensitive proposals, …) within the daily limit.
 // Input is title metadata only; the answer must match the dossier schema; a dossier never publishes.
 
 import Anthropic from "npm:@anthropic-ai/sdk@0.136.0";
 import { emailAdmins, pausedEmailText } from "../_shared/admin-email.ts";
-import { fromCron, hubAdminCaller, json, serviceClient } from "../_shared/client-api.ts";
+import { fromCron, hubCuratorCaller, json, serviceClient } from "../_shared/client-api.ts";
 import { extractJson, researchMessage, researchSystem, validateDossier, type CategoryName, type ResearchInput } from "../_shared/research.ts";
 import {
   claudeResearch,
@@ -97,8 +97,8 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
   const db = serviceClient();
   const cron = fromCron(req);
-  const admin = cron ? null : await hubAdminCaller(req);
-  if (!cron && !admin) return json({ error: "Only hub admins can run research" }, 403);
+  const admin = cron ? null : await hubCuratorCaller(req);
+  if (!cron && !admin) return json({ error: "Only hub admins and operators can run research" }, 403);
   const body = (await req.json().catch(() => ({}))) as { action?: string; entry_id?: string };
 
   if (body.action === "run") {

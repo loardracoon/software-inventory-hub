@@ -3,7 +3,7 @@ import { Navigate, useLocation } from "react-router";
 import { Loader2, ShieldX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/empty-state";
-import { useAuth } from "./auth-context";
+import { useAuth, useHubRole } from "./auth-context";
 
 function Loading() {
   return (
@@ -14,9 +14,9 @@ function Loading() {
   );
 }
 
-// Signed in and listed in hub_admins; anyone else sees "Access denied" (RLS also denies them every row).
+// Signed in with a Hub role (hub_members); anyone else sees "Access denied" (RLS also denies them every row).
 export function RequireAuth({ children }: { children: ReactNode }) {
-  const { status, isHubAdmin, user, signOut } = useAuth();
+  const { status, role, user, signOut } = useAuth();
   const location = useLocation();
 
   if (status === "unconfigured") {
@@ -34,14 +34,14 @@ export function RequireAuth({ children }: { children: ReactNode }) {
     const from = `${location.pathname}${location.search}`;
     return <Navigate to="/login" replace state={{ from }} />;
   }
-  if (isHubAdmin === null) return <Loading />;
-  if (!isHubAdmin) {
+  if (role === null) return <Loading />;
+  if (role === "none") {
     return (
       <div className="mx-auto flex max-w-xl flex-col items-center gap-4 p-6 pt-24">
         <EmptyState
           icon={ShieldX}
           title="Access denied"
-          description={`${user?.email ?? "This account"} is not a Dictionary Hub admin. Ask a hub admin to add you.`}
+          description={`${user?.email ?? "This account"} has no access to the Dictionary Hub. Ask a hub admin to add your email or your email domain.`}
         />
         <Button variant="secondary" size="sm" onClick={() => void signOut()}>
           Sign out
@@ -50,4 +50,17 @@ export function RequireAuth({ children }: { children: ReactNode }) {
     );
   }
   return children;
+}
+
+// Pages for operators and admins ("curate") or admins only; the database refuses the data anyway.
+export function RequireRole({ access, children }: { access: "curate" | "admin"; children: ReactNode }) {
+  const { isAdmin, canCurate } = useHubRole();
+  if (access === "admin" ? isAdmin : canCurate) return children;
+  return (
+    <EmptyState
+      icon={ShieldX}
+      title="Not available for your role"
+      description={access === "admin" ? "Only hub admins can open this page." : "Only hub admins and operators can open this page."}
+    />
+  );
 }

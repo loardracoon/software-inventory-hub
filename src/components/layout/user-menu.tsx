@@ -8,7 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useAuth } from "@/features/auth/auth-context";
+import { useAuth, useHubRole } from "@/features/auth/auth-context";
 
 function initials(text: string): string {
   const name = text.split("@")[0];
@@ -17,7 +17,8 @@ function initials(text: string): string {
 }
 
 export function UserMenu() {
-  const { user, isHubAdmin, signOut } = useAuth();
+  const { user, signOut } = useAuth();
+  const { role } = useHubRole();
   const email = user?.email ?? "";
 
   return (
@@ -31,9 +32,9 @@ export function UserMenu() {
       <DropdownMenuContent align="end" className="w-64">
         <DropdownMenuLabel className="flex flex-col gap-1.5 font-normal">
           <span className="truncate text-sm text-text-strong">{email}</span>
-          {isHubAdmin ? (
+          {role ? (
             <Badge color="blue" soft>
-              Hub admin
+              {role === "admin" ? "Hub admin" : role === "operator" ? "Operator" : "Viewer"}
             </Badge>
           ) : null}
         </DropdownMenuLabel>

@@ -13,6 +13,7 @@ import { useLoad } from "@/lib/use-load";
 import { cn } from "@/lib/utils";
 import type { EngineStatus } from "@/features/jev/api";
 import { fetchEngine, pauseEngine, PROVIDERS, resumeEngine, setEngineMode, type EngineName } from "./api";
+import { useHubRole } from "@/features/auth/auth-context";
 
 const TITLE: Record<EngineName, string> = { jev: "Jev", research: "Research" };
 const UNIT: Record<EngineName, string> = { jev: "titles", research: "researches" };
@@ -41,6 +42,7 @@ export function BudgetBar({ label, used, limit, text }: { label: string; used: n
 
 // Engines & usage: one card per engine with mode, pause, provider/model, budget and this month's numbers.
 export function EngineCard({ engine }: { engine: EngineName }) {
+  const { isAdmin } = useHubRole();
   const [version, setVersion] = useState(0);
   const data = useLoad(`engine:${engine}:${version}`, () => fetchEngine(engine));
   const [busy, setBusy] = useState(false);
@@ -96,6 +98,7 @@ export function EngineCard({ engine }: { engine: EngineName }) {
               <strong>Paused{s.paused_reason ? `: ${s.paused_reason}` : ""}.</strong> It stays paused until an admin resumes it.
             </div>
           ) : null}
+          {isAdmin ? (
           <div className="flex flex-wrap items-end gap-3">
             <Field label="Mode" htmlFor={`${engine}-mode`} className="min-w-56 flex-1">
               <NativeSelect id={`${engine}-mode`} value={s.mode} onChange={(v) => void change(() => setEngineMode(engine, v as EngineStatus["mode"]), "Mode changed")} options={MODES} />
@@ -112,6 +115,7 @@ export function EngineCard({ engine }: { engine: EngineName }) {
               </Button>
             )}
           </div>
+          ) : null}
           <BudgetBar
             label="Budget this month"
             used={Number(s.spend_month)}

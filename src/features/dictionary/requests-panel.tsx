@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ErrorLine } from "@/components/shared/error-line";
+import { useHubRole } from "@/features/auth/auth-context";
 import { runJev } from "@/features/jev/api";
 import { formatDateTime } from "@/lib/format";
 import { decideRequests, type RequestGroup } from "./api";
@@ -36,6 +37,7 @@ function RequestCard({ g, onDecided }: { g: RequestGroup; onDecided: () => void 
   const [category, setCategory] = useState(suggestions[0]?.[0] ?? "");
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
+  const { canCurate } = useHubRole();
 
   async function decide(accept: boolean) {
     setBusy(true);
@@ -95,6 +97,8 @@ function RequestCard({ g, onDecided }: { g: RequestGroup; onDecided: () => void 
           </li>
         ))}
       </ul>
+      {canCurate ? (
+      <>
       <div className="flex flex-wrap items-end gap-3">
         {suggestions.length > 1 ? (
           <label className="flex flex-col gap-1 text-[13px] font-semibold">
@@ -130,6 +134,8 @@ function RequestCard({ g, onDecided }: { g: RequestGroup; onDecided: () => void 
           Reject with note
         </Button>
       </div>
+      </>
+      ) : null}
     </Card>
   );
 }
