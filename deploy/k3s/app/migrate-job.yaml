@@ -15,7 +15,7 @@ spec:
       restartPolicy: Never
       containers:
         - name: migrate
-          image: ghcr.io/loardracoon/software-inventory-hub-migrate:6e6b05e89a320cb4dee2f63c2f233c9d9be17ff0
+          image: ghcr.io/loardracoon/software-inventory-hub-migrate:d53bb3e9b841b267e75ae73dc549544279bd1921
           imagePullPolicy: IfNotPresent
           env:
             - { name: DATABASE_URL, valueFrom: { secretKeyRef: { name: supabase, key: FUNCTIONS_DB_URL } } }
