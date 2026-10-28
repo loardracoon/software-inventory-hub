@@ -132,12 +132,21 @@ describe("REST research providers", () => {
     expect(r).toMatchObject({ text: "{}", searches: 2, usage: { input: 11, output: 4, cacheRead: 2 } });
   });
 
-  it("Grok: live search capped at the limit; quota errors count as billing", async () => {
+  it("Grok: live search capped at the limit; only 402 counts as billing", async () => {
     const f = fakeFetch({ choices: [{ message: { content: "{}" } }], usage: { prompt_tokens: 5, completion_tokens: 2, num_sources_used: 9 } });
     const r = await grokResearch(f, "x-key", "grok-4", limits).research("sys", "msg");
     expect(sent(f).body.search_parameters).toEqual({ mode: "on", max_search_results: 5, return_citations: true });
     expect(r.searches).toBe(5);
-    await expect(grokResearch(fakeFetch("quota exceeded", 429), "k", "grok-4", limits).research("s", "m")).rejects.toMatchObject({ httpStatus: 402 });
+    await expect(grokResearch(fakeFetch("quota exceeded", 429), "k", "grok-4", limits).research("s", "m")).rejects.toMatchObject({ httpStatus: 429 });
+    await expect(grokResearch(fakeFetch("payment required", 402), "k", "grok-4", limits).research("s", "m")).rejects.toMatchObject({ httpStatus: 402 });
+  });
+
+  it("Gemini: a 429 rate limit is a normal error with Google's message, not a billing pause", async () => {
+    const google = {
+      error: { code: 429, message: "You exceeded your current quota, please check your plan and billing details.", status: "RESOURCE_EXHAUSTED" },
+    };
+    const p = geminiResearch(fakeFetch(google, 429), "k", "gemini-3.8-flash", limits).research("s", "m");
+    await expect(p).rejects.toMatchObject({ httpStatus: 429, message: "HTTP 429: You exceeded your current quota, please check your plan and billing details." });
   });
 
   it("times out a hanging request", async () => {

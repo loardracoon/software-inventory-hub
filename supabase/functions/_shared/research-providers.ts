@@ -30,14 +30,28 @@ function withTimeout(seconds: number): { signal: AbortSignal; done: () => void }
   return { signal: controller.signal, done: () => clearTimeout(timer) };
 }
 
+// The provider's own error message ({ error: { message } } or { error: "..." }), else the start of the body.
+export function providerMessage(text: string): string {
+  try {
+    const j = JSON.parse(text) as { error?: { message?: string } | string; message?: string };
+    const message = typeof j.error === "string" ? j.error : (j.error?.message ?? j.message);
+    if (message) return message.replace(/\s+/g, " ").trim().slice(0, 300);
+  } catch {
+    // not JSON
+  }
+  return text.replace(/\s+/g, " ").trim().slice(0, 200);
+}
+
 async function postJson(fetchFn: FetchLike, url: string, headers: Record<string, string>, body: unknown, limits: Limits): Promise<Record<string, unknown>> {
   const t = withTimeout(limits.timeoutSeconds);
   try {
     const res = await fetchFn(url, { method: "POST", headers: { "Content-Type": "application/json", ...headers }, body: JSON.stringify(body), signal: t.signal });
     const text = await res.text();
     if (!res.ok) {
-      const billing = res.status === 402 || (res.status === 429 && /quota|billing|credit/i.test(text));
-      throw new ResearchError(`HTTP ${res.status}: ${text.slice(0, 200)}`, billing ? 402 : res.status);
+      // Only 402 means "no credit" (it pauses the engine at once). A 429 is a rate or quota limit that often
+      // clears in a minute (Gemini's message always says "check your plan and billing"): a normal error,
+      // which still pauses the engine through the failure-rate rule if it continues.
+      throw new ResearchError(`HTTP ${res.status}: ${providerMessage(text)}`, res.status);
     }
     return JSON.parse(text) as Record<string, unknown>;
   } catch (error) {
