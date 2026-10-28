@@ -1,8 +1,9 @@
 // POST reclassification-requests { kind, source, match_key, suggested_category_id, reason, evidence_url }
 //   → { id: "REQ-0042", status: "open" }; the client's open request for the entry is returned instead of
-//   a second one. A new request notifies the inbox and emails every hub admin (Resend, when configured).
+//   a second one. A new request notifies the inbox and emails every hub admin (SMTP or Resend, when configured).
 // GET reclassification-requests?ids=REQ-0042,REQ-0043 → [{ id, status, admin_note }], own requests only.
 
+import { emailAdmins } from "../_shared/admin-email.ts";
 import { authenticate, json, readJson, serviceClient } from "../_shared/client-api.ts";
 import { parseRequestIds, validateRequest } from "../_shared/validate.ts";
 
@@ -42,18 +43,12 @@ Deno.serve(async (req) => {
   });
   if (error) return json({ error: error.code === "22023" ? error.message : "Could not open the request" }, error.code === "22023" ? 400 : 500);
   const opened = data as Opened;
-  if (opened.created) await emailAdmins(db, opened);
+  if (opened.created) await emailRequest(db, opened);
   return json({ id: opened.id, status: opened.status }, opened.created ? 201 : 200);
 });
 
 // Best effort: the request is stored and in the inbox even when email fails or is not configured.
-async function emailAdmins(db: ReturnType<typeof serviceClient>, r: Opened) {
-  const key = Deno.env.get("RESEND_API_KEY");
-  const from = Deno.env.get("HUB_EMAIL_FROM");
-  if (!key || !from) return;
-  const { data: emails } = await db.rpc("hub_admin_emails");
-  const to = (emails as string[] | null) ?? [];
-  if (to.length === 0) return;
+async function emailRequest(db: ReturnType<typeof serviceClient>, r: Opened) {
   const link = `${(Deno.env.get("HUB_CONSOLE_URL") ?? "http://localhost:5175").replace(/\/+$/, "")}/?request=${encodeURIComponent(r.id)}`;
   // Client text is untrusted: plain text email only.
   const text = [
@@ -65,15 +60,5 @@ async function emailAdmins(db: ReturnType<typeof serviceClient>, r: Opened) {
     "",
     `Open the request: ${link}`,
   ].join("\n");
-  try {
-    const res = await fetch(Deno.env.get("RESEND_API_URL") || "https://api.resend.com/emails", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from, to, subject: `[Dictionary Hub] ${r.id}: reclassify ${r.title}`, text }),
-    });
-    if (!res.ok) console.error(`Request email failed: HTTP ${res.status}`);
-    await res.body?.cancel();
-  } catch (e) {
-    console.error(`Request email failed: ${(e as Error).name}`);
-  }
+  await emailAdmins(db, `${r.id}: reclassify ${r.title}`, text);
 }

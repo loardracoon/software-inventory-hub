@@ -30,6 +30,7 @@ The single source of truth for software titles (programs, browser and IDE extens
 - `npm run web:up` rebuilds the web container; run it after any dependency change (its node_modules live in a volume).
 - `node scripts/generate-taxonomy-seed.mjs` rewrites the taxonomy seed migration from `docs/taxonomy.json` (keep the file identical to `../client/docs/taxonomy.json`).
 - `npm run cron:configure` (`-- --off`): writes the Vault secrets pg_cron needs for `jev-auto`, `research-tick` and `daily-digest` (`CRON_SECRET` from `supabase/functions/.env`).
+- Admin email (`_shared/admin-email.ts`): SMTP when `SMTP_HOST` is set (`_shared/smtp.ts`; port 465 = implicit TLS with login, other ports plain and only without login — the local Mailpit is `supabase_inbucket_dictionary-hub:1025`), otherwise Resend (`RESEND_API_KEY`, `HUB_EMAIL_FROM`), otherwise skipped. The main Hub is the VPS (`deploy/vps/`), which sends through Mailu.
 - `npm run admin:add -- <email>`: create a hub admin (local stack by default; `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` for a remote project).
 - `npm run dev` (Vite on 5175 without Docker), `npm run build`, `npm test` (Vitest), `npm run lint`, `npm run test:db` (pgTAP), `npm run db:types`, `npm run functions:check`.
 - Mailpit (magic links): http://127.0.0.1:56324. Studio: http://127.0.0.1:56323.
