@@ -141,9 +141,10 @@ export function geminiResearch(fetchFn: FetchLike, key: string, model: string, l
         limits,
       );
       const candidate = (r.candidates as { content?: { parts?: { text?: string }[] }; groundingMetadata?: { webSearchQueries?: string[] } }[] | undefined)?.[0];
-      const meta = r.usageMetadata as { promptTokenCount?: number; candidatesTokenCount?: number; cachedContentTokenCount?: number } | undefined;
+      const meta = r.usageMetadata as { promptTokenCount?: number; candidatesTokenCount?: number; thoughtsTokenCount?: number; cachedContentTokenCount?: number } | undefined;
       const searches = candidate?.groundingMetadata?.webSearchQueries?.length ?? 0;
-      const usage = { input: meta?.promptTokenCount ?? 0, output: meta?.candidatesTokenCount ?? 0, cacheRead: meta?.cachedContentTokenCount ?? 0, cacheWrite: 0 };
+      // Thinking tokens (Gemini 2.5 and later) are billed as output.
+      const usage = { input: meta?.promptTokenCount ?? 0, output: (meta?.candidatesTokenCount ?? 0) + (meta?.thoughtsTokenCount ?? 0), cacheRead: meta?.cachedContentTokenCount ?? 0, cacheWrite: 0 };
       // Gemini has no per-request search cap: refuse an answer that used more than allowed.
       if (searches > limits.maxSearches) throw new ResearchError(`Gemini ran ${searches} searches (limit ${limits.maxSearches})`, 200, usage, searches);
       return { text: (candidate?.content?.parts ?? []).map((p) => p.text ?? "").join(""), usage, searches, latencyMs: Date.now() - started };

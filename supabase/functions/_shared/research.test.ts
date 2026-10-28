@@ -109,14 +109,14 @@ describe("REST research providers", () => {
   const sent = (f: ReturnType<typeof fakeFetch>) => ({ url: f.mock.calls[0][0], init: f.mock.calls[0][1], body: JSON.parse(String(f.mock.calls[0][1].body)) });
 
   it("Gemini: Google Search grounding, key header, usage, and the search limit", async () => {
-    const answer = { candidates: [{ content: { parts: [{ text: "{}" }] }, groundingMetadata: { webSearchQueries: ["a", "b"] } }], usageMetadata: { promptTokenCount: 7, candidatesTokenCount: 3 } };
+    const answer = { candidates: [{ content: { parts: [{ text: "{}" }] }, groundingMetadata: { webSearchQueries: ["a", "b"] } }], usageMetadata: { promptTokenCount: 7, candidatesTokenCount: 3, thoughtsTokenCount: 4 } };
     const f = fakeFetch(answer);
     const r = await geminiResearch(f, "g-key", "gemini-2.5-flash", limits).research("sys", "msg");
     const s = sent(f);
     expect(s.url).toContain("/models/gemini-2.5-flash:generateContent");
     expect((s.init.headers as Record<string, string>)["x-goog-api-key"]).toBe("g-key");
     expect(s.body.tools).toEqual([{ google_search: {} }]);
-    expect(r).toMatchObject({ text: "{}", searches: 2, usage: { input: 7, output: 3 } });
+    expect(r).toMatchObject({ text: "{}", searches: 2, usage: { input: 7, output: 7 } }); // 3 answer + 4 thinking tokens
     await expect(geminiResearch(fakeFetch(answer), "k", "m", { maxSearches: 1, timeoutSeconds: 60 }).research("s", "m")).rejects.toThrow(/limit 1/);
   });
 
