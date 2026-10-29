@@ -10,6 +10,8 @@ import { useHubRole } from "@/features/auth/auth-context";
 import { formatDateTime } from "@/lib/format";
 import { resolveProductConflict, type ProductConflict } from "./api";
 
+const ATTENTION_LABEL: Record<string, string> = { info: "Info", review: "Review", not_allowed: "Not allowed" };
+
 // Inbox › Grouping review: products whose spellings were published with different categories before they
 // were grouped. Choosing one spelling publishes its classification to all of them.
 export function GroupingReview({ conflicts, error, onResolved }: { conflicts: ProductConflict[]; error: string | null; onResolved: () => void }) {
@@ -50,7 +52,7 @@ export function GroupingReview({ conflicts, error, onResolved }: { conflicts: Pr
                 <span className="flex flex-col">
                   <Link to={`/dictionary/${a.entry_id}`}>{a.canonical_name}</Link>
                   <span className="text-xs text-text-muted">
-                    {a.category ?? "No category"} · {a.method ?? "—"}
+                    {a.category ?? "No category"} · attention {a.attention_override ? ATTENTION_LABEL[a.attention_override] : "category default"} · {a.method ?? "—"}
                     {a.reviewed_at ? ` · reviewed ${formatDateTime(a.reviewed_at)}` : ""}
                     {i === 0 ? " · suggested" : ""}
                   </span>

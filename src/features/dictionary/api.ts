@@ -169,7 +169,15 @@ export type ProductConflict = {
   product_id: string;
   display_name: string;
   vendor: string | null;
-  aliases: { entry_id: string; canonical_name: string; category_id: string | null; category: string | null; method: string | null; reviewed_at: string | null }[];
+  aliases: {
+    entry_id: string;
+    canonical_name: string;
+    category_id: string | null;
+    category: string | null;
+    method: string | null;
+    reviewed_at: string | null;
+    attention_override: Attention | null;
+  }[];
 };
 
 // The product of an entry and every spelling in it.
