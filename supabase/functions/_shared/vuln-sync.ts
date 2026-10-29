@@ -42,6 +42,7 @@ export type SyncSummary = {
 };
 
 const MIN_TIME_LEFT_MS = 15_000;
+const SEARCH_RESERVE_MS = 45_000;
 
 async function call<T>(db: RpcClient, fn: string, args: Record<string, unknown> = {}): Promise<T> {
   const { data, error } = await db.rpc(fn, args);
@@ -154,7 +155,11 @@ export async function runVulnSync(db: RpcClient, o: SyncOptions): Promise<SyncSu
   }
   if (enough()) {
     for (const p of await call<{ product_id: string; display_name: string; vendor_key: string }[]>(db, "vuln_products_due", { p_limit: 20 })) {
-      if (!enough()) break;
+      // New searches leave time for packages, KEV and EPSS (without an NVD key a search costs 6.5 s).
+      if (o.timeLeft() < SEARCH_RESERVE_MS) {
+        s.complete = false;
+        break;
+      }
       const stored = await searchProduct(p.product_id, p.display_name, p.vendor_key);
       // A product confirmed just now gets its CVEs in this run when time allows.
       if (stored && stored.confirmed > 0 && enough()) {

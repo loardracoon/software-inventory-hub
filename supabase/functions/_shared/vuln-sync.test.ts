@@ -98,6 +98,15 @@ describe("runVulnSync (cron)", () => {
     expect(s.errors[0]).toMatch(/CVEs of 7-zip:7-zip: HTTP 403/);
   });
 
+  it("stops new CPE searches early so KEV and EPSS still run", async () => {
+    const { db, calls } = fakeDb({ productsDue: [{ product_id: "p9", display_name: "X", vendor_key: "y" }], epssDue: ["CVE-1"] });
+    const s = await runVulnSync(db, { fetchFn: fakeNet(), nvdKey: null, timeLeft: () => 30_000, ...clock() });
+    expect(calls.some((x) => x.fn === "vuln_store_cpes")).toBe(false);
+    expect(calls.map((x) => x.fn)).toContain("vuln_set_kev");
+    expect(calls.map((x) => x.fn)).toContain("vuln_set_epss");
+    expect(s.complete).toBe(false);
+  });
+
   it("stops before the time limit and says so", async () => {
     const { db, calls } = fakeDb({ kevDue: false, cpesDue: [{ id: "c1", product_id: "p7", cpe_vendor: "a", cpe_product: "b", synced_at: null }] });
     const s = await runVulnSync(db, { fetchFn: fakeNet(), nvdKey: null, timeLeft: () => 5_000, ...clock() });
