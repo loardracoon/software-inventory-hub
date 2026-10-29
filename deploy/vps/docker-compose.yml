@@ -32,6 +32,8 @@ services:
   auth:
     image: public.ecr.aws/supabase/gotrue:v2.197.0
     restart: unless-stopped
+    # Rate limits and abuse protection (README › Rate limits); optional: without it the image defaults apply.
+    env_file: [{ path: ./rate-limits.env, required: false }]
     depends_on: { db: { condition: service_healthy } }
     environment:
       GOTRUE_API_HOST: 0.0.0.0
@@ -83,6 +85,8 @@ services:
   functions:
     image: ghcr.io/loardracoon/software-inventory-hub-functions:${HUB_TAG}
     restart: unless-stopped
+    # Rate limits and abuse protection (README › Rate limits); optional: without it the image defaults apply.
+    env_file: [{ path: ./rate-limits.env, required: false }]
     environment:
       <<: *jwt
       SUPABASE_URL: http://kong:8000
@@ -104,6 +108,8 @@ services:
   kong:
     image: ghcr.io/loardracoon/software-inventory-hub-web:${HUB_TAG}
     restart: unless-stopped
+    # Rate limits and abuse protection (README › Rate limits); optional: without it the image defaults apply.
+    env_file: [{ path: ./rate-limits.env, required: false }]
     # nginx resolves its upstreams at start: restart it whenever one of them is recreated (new IP).
     depends_on:
       auth: { condition: service_started, restart: true }

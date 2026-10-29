@@ -6,7 +6,7 @@ set local search_path = public, extensions;
 truncate public.clients, public.classification_runs, public.audit_log, public.hub_members, public.access_rules, public.notifications cascade;
 delete from public.entries;
 
-select plan(32);
+select plan(33);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-00000000000a', 'admin@example.com'),
@@ -44,6 +44,7 @@ select public.client_call(pg_temp.hash((select client_key from k1))) from genera
 select results_eq($$select status, retry_after between 1 and 60 from public.client_call(pg_temp.hash((select client_key from k1)))$$,
   $$values (429, true)$$, 'the 61st call in a minute gets 429 with Retry-After');
 select is((select status from public.client_call(pg_temp.hash((select client_key from k2)))), 200, 'the limit is per client');
+select is((select status from public.client_call(pg_temp.hash((select client_key from k1)), 120)), 200, 'the deployment can set a higher limit (RL_HUB_CLIENT_REQUESTS_PER_MINUTE)');
 
 -- Dictionary changes ------------------------------------------------------------------------------
 insert into public.entries (kind, source, match_key, canonical_name, category_id, method, status, seq, confidence)

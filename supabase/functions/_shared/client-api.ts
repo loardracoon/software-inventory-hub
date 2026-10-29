@@ -19,13 +19,20 @@ export function serviceClient(): SupabaseClient {
 export type CallingClient = { id: string; name: string };
 
 // Bearer <client key> → the calling client, or the 401/429 response to return.
+// Calls per minute per client key: RL_HUB_CLIENT_REQUESTS_PER_MINUTE (rate-limits.env, README › Rate limits).
+export function clientCallsPerMinute(value = Deno.env.get("RL_HUB_CLIENT_REQUESTS_PER_MINUTE")): number {
+  const n = Number.parseInt(value ?? "", 10);
+  return Number.isInteger(n) && n > 0 ? n : 120;
+}
+
 export async function authenticate(req: Request, db: SupabaseClient): Promise<CallingClient | Response> {
   const key = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "").trim();
   if (!key) return json({ error: "Missing client key" }, 401);
-  const { data, error } = await db.rpc("client_call", { p_key_hash: await sha256Hex(key) });
+  const limit = clientCallsPerMinute();
+  const { data, error } = await db.rpc("client_call", { p_key_hash: await sha256Hex(key), p_limit: limit });
   if (error) return json({ error: "Could not check the client key" }, 500);
   const row = (data as { client_id: string | null; client_name: string | null; status: number; retry_after: number | null }[])[0];
-  if (row.status === 429) return json({ error: "Rate limit: 60 calls per minute" }, 429, { "Retry-After": String(row.retry_after ?? 60) });
+  if (row.status === 429) return json({ error: `Rate limit: ${limit} calls per minute` }, 429, { "Retry-After": String(row.retry_after ?? 60) });
   if (row.status !== 200 || !row.client_id) return json({ error: "Invalid or revoked client key" }, 401);
   return { id: row.client_id, name: row.client_name ?? "" };
 }

@@ -16,8 +16,40 @@ Coexistence with Mailu: only port 18443 is published; Mailu's containers, config
 
 ## Files
 
-- `docker-compose.yml`, `tls.conf`, `update.sh` from this folder; `mail.htpasswd` empty (no Mailpit here, `/mail/` refuses everyone).
+- `docker-compose.yml`, `tls.conf`, `update.sh`, `rate-limits.env` from this folder; `mail.htpasswd` empty (no Mailpit here, `/mail/` refuses everyone).
 - `.env` (chmod 600, never committed): `PUBLIC_URL`, `HUB_PORT`, `HUB_TAG`, `POSTGRES_PASSWORD`, `JWT_SECRET`, `ANON_KEY`, `SERVICE_ROLE_KEY`, `CRON_SECRET`, `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS`.
+
+## Rate limits and abuse protection
+
+All limits are in one file: **`rate-limits.env`** (in this folder; on the server `/opt/dictionary-hub/rate-limits.env`). Docker Compose loads it into `kong` (the gateway), `auth` and `functions` (`env_file`, optional: without the file the image defaults apply, and Auth has no per-address limits). After a change: `docker compose up -d kong auth functions`. `tls.conf` adds a limit of 100 open connections per address and timeouts against slow clients. Values for a team of up to ~50 users behind one office address:
+
+| Setting | Recommended | What it limits |
+| --- | --- | --- |
+| `RL_AUTH_STRICT_RATE` / `_BURST` | `10r/m` / `10` | Gateway, per address: `/auth/v1/otp`, `magiclink`, `signup`, `recover`, `resend`, `verify` (sign-in links and code checks) |
+| `RL_AUTH_RATE` / `_BURST` | `120r/m` / `60` | Gateway, per address: other Auth calls (session refresh, user) and `/mail/` |
+| `RL_REST_RATE` / `_BURST` | `30r/s` / `120` | Gateway, per address: the database API (a screen sends 10 to 30 requests at once) |
+| `RL_FUNCTIONS_RATE` / `_BURST` | `10r/s` / `60` | Gateway, per address: Edge Functions (client API, console actions) |
+| `RL_CONN_PER_IP` | `60` | Gateway: open connections per address |
+| `RL_BODY_AUTH` / `RL_BODY_REST` / `RL_BODY_FUNCTIONS` | `64k` / `2m` / `10m` | Gateway: largest request body (HTTP 413 above) |
+| `GOTRUE_RATE_LIMIT_HEADER` | `X-Real-IP` | Auth: the header with the client address. **Without it GoTrue applies none of its per-address limits** (checked in the GoTrue source); the gateway sets it |
+| `GOTRUE_RATE_LIMIT_OTP` | `10` | Auth: sign-in and sign-up requests per address per 5 minutes |
+| `GOTRUE_RATE_LIMIT_VERIFY` | `15` | Auth: magic link and code checks per address per 5 minutes |
+| `GOTRUE_RATE_LIMIT_TOKEN_REFRESH` | `60` | Auth: session refreshes per address per 5 minutes |
+| `GOTRUE_RATE_LIMIT_EMAIL_SENT` | `60` | Auth: emails per hour for the whole app (sign-in links, invitations) |
+| `RL_INVITES_PER_HOUR` | `20` | Edge Function `manage-users`: invitations and sign-in links per admin per hour (counted in the audit log) |
+| `RL_HUB_CLIENT_REQUESTS_PER_MINUTE` | `120` | Client API: calls per client key per minute (HTTP 429 with `Retry-After`; one client sync sends up to ~50) |
+
+How it works:
+
+- **Gateway** (nginx in the web image, `deploy/k3s/nginx.conf.template`): limits per client address with `limit_req` (HTTP 429), open connections, body sizes and timeouts against slow clients. The image has the recommended values as defaults; Docker Compose (rate-limits.env) overrides them. The client address comes from `X-Forwarded-For`, trusted only from private networks (the proxy in front), so a client cannot choose its own address. Calls between services (Edge Functions to PostgREST and Auth, database jobs to Edge Functions) carry no `X-Forwarded-For` and are not limited.
+- **Auth** (GoTrue): per-address limits on sign-in, code checks and session refresh, keyed by the `X-Real-IP` header the gateway sets, and one email limit for the whole app.
+- **Edge Functions**: the per-admin invitation limit and the per-key limit of the client API.
+
+Raise the gateway rates when many users share one public address (one office behind NAT): every limit is per address. Lower them when the app is open to the internet and has few users.
+
+Check the client address after a change: the gateway access log (`docker compose logs kong`) must show the real public addresses, not one internal address for everyone. On the VPS the tls container adds the address; nothing else is needed. A blocked request gets HTTP 429 and a line `limiting requests` in that log.
+
+Limits that were already in place: Sophos API budget per tenant (10 runs per minute, 1,000 per day, Scans › API budget), Hub sync back-off (5 minutes up to 6 hours), retries of 429 and 5xx with back-off in `_shared/http.ts`, NVD calls paced to its limit (5 per 30 s without a key, 50 with one), Jev and Research daily budgets (Engines & usage).
 
 ## Jobs
 

@@ -4,7 +4,7 @@
 
 import { createClient } from "npm:@supabase/supabase-js@2.118.0";
 import { hubAdminCaller, json, serviceClient } from "../_shared/client-api.ts";
-import { parseInvite } from "../_shared/users.ts";
+import { INVITE_ACTIONS, invitesPerHour, parseInvite } from "../_shared/users.ts";
 
 class HttpError extends Error {
   constructor(readonly status: number, message: string) {
@@ -25,6 +25,19 @@ Deno.serve(async (req) => {
   }
 
   const db = serviceClient();
+
+  // At most RL_INVITES_PER_HOUR emails per admin per hour.
+  const perHour = invitesPerHour(Deno.env.get("RL_INVITES_PER_HOUR"));
+  const { count: sentLastHour } = await db
+    .from("audit_log")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", caller.userId)
+    .in("action", INVITE_ACTIONS)
+    .gte("created_at", new Date(Date.now() - 3_600_000).toISOString());
+  if ((sentLastHour ?? 0) >= perHour) {
+    return json({ error: `Limit reached: ${perHour} invitations or sign-in links per hour. Try again later.` }, 429);
+  }
+
   try {
     const { data: member } = await db.from("hub_members").select("user_id, role").eq("email", invite.email).maybeSingle();
     if (member && member.role === "admin" && invite.role !== "admin") {

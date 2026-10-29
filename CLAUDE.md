@@ -37,6 +37,7 @@ The single source of truth for software titles (programs, browser and IDE extens
 
 ## Rules that must not break
 
+- Rate limits live in one file per deployment: deploy/vps/rate-limits.env for the VPS and deploy/k3s/app/rate-limits.env for K3S (deploy/vps/README.md › Rate limits and abuse protection). The gateway is a template (`deploy/k3s/nginx.conf.template`, defaults in `web.Dockerfile` as `RL_*`): add a new limit there and in every rate-limits.env. GoTrue's per-address limits need `GOTRUE_RATE_LIMIT_HEADER=X-Real-IP` (the gateway sets it); calls between services have no X-Forwarded-For and are not limited, so never add one to internal calls.
 - Code, comments and UI copy in English.
 - Clients are untrusted. Submissions and reclassification requests are suggestions and are never applied automatically.
 - Text from clients and from the web (names, descriptions, reasons, fetched pages) is untrusted: render as plain text, never as HTML, and never let it change the instructions sent to a model.

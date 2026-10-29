@@ -71,6 +71,7 @@ spec:
       containers:
         - name: gotrue
           image: public.ecr.aws/supabase/gotrue:v2.197.0
+          envFrom: [{ configMapRef: { name: rate-limits } }]
           env:
             - { name: GOTRUE_API_HOST, value: 0.0.0.0 }
             - { name: GOTRUE_API_PORT, value: "9999" }
@@ -168,7 +169,7 @@ spec:
             - { name: SUPABASE_ANON_KEY, valueFrom: { secretKeyRef: { name: supabase, key: ANON_KEY } } }
             - { name: SUPABASE_SERVICE_ROLE_KEY, valueFrom: { secretKeyRef: { name: supabase, key: SERVICE_ROLE_KEY } } }
             - { name: SUPABASE_DB_URL, valueFrom: { secretKeyRef: { name: supabase, key: FUNCTIONS_DB_URL } } }
-          envFrom: [{ secretRef: { name: functions-env } }]
+          envFrom: [{ secretRef: { name: functions-env } }, { configMapRef: { name: rate-limits } }]
           ports: [{ containerPort: 9000 }]
           resources:
             requests: { cpu: 50m, memory: 128Mi }
@@ -223,6 +224,7 @@ spec:
         - name: nginx
           image: ghcr.io/loardracoon/software-inventory-hub-web:d228b40cb8b65eee70e3f21dc85ea2d1455efe9b
           imagePullPolicy: IfNotPresent
+          envFrom: [{ configMapRef: { name: rate-limits } }]
           env:
             - { name: SUPABASE_URL, value: "https://hub.clau.sophizo.com.br" }
             - { name: SUPABASE_ANON_KEY, valueFrom: { secretKeyRef: { name: supabase, key: ANON_KEY } } }
