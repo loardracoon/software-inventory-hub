@@ -1,5 +1,6 @@
-// POST titles-submit { titles: [{ kind, source, match_key, name, vendor, description }] } (max 500).
-// Any other field is rejected. Unknown titles become pending entries; known ones count one more client.
+// POST titles-submit { titles: [{ kind, source, match_key, name, vendor, description, platforms? }] } (max 500).
+// platforms: the OS families (windows, macos, linux) where the client found the title. Any other field
+// is rejected. Unknown titles become pending entries; known ones count one more client.
 
 import { authenticate, json, readJson, serviceClient } from "../_shared/client-api.ts";
 import { validateTitles } from "../_shared/validate.ts";

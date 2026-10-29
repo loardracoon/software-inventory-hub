@@ -141,7 +141,7 @@ describe("runVulnSync with CNA data", () => {
     const s = await runVulnSync(db, { fetchFn: net(), nvdKey: "k", timeLeft: () => 100_000, ...clock() });
     const stored = calls.find((x) => x.fn === "vuln_store")!.args.p_vulns as { vuln_id: string; ranges: { version_end: string | null }[] }[];
     expect(stored.map((v) => v.vuln_id)).toEqual(["CVE-B", "CVE-C", "CVE-D"]);
-    expect(stored[0].ranges).toEqual([{ version_start: null, start_inclusive: true, version_end: "20.114.0607.0002", end_inclusive: false, exact_version: null }]);
+    expect(stored[0].ranges).toEqual([{ version_start: null, start_inclusive: true, version_end: "20.114.0607.0002", end_inclusive: false, exact_version: null, platforms: ["windows"] }]);
     expect(stored[1].ranges[0].version_end).toBeNull();
     expect(s.cna_calls).toBe(4);
     expect(s.errors).toEqual([]);

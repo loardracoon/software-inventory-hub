@@ -6,7 +6,7 @@ set local search_path = public, extensions;
 truncate public.clients, public.classification_runs, public.audit_log, public.hub_members, public.access_rules, public.notifications cascade;
 delete from public.entries;
 
-select plan(31);
+select plan(32);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-00000000000a', 'admin@example.com'),
@@ -79,6 +79,10 @@ select results_eq($$select reports_count, description from public.entries where 
   $$values (2, 'Remote desktop')$$, 'reports_count counts distinct clients; a pending entry learns missing fields');
 select is((select count(*)::int from public.submissions where match_key = 'rustdesk|purslane'), 3, 'every submission is kept');
 select is((select count(*)::int from public.notifications where type = 'new_title'), 1, 'new titles notify the inbox once per call with something new');
+select public.submit_titles((select client_id from k1), '[{"kind": "program", "source": "programs", "match_key": "rustdesk|purslane", "name": "RustDesk", "platforms": ["windows"]}]');
+select public.submit_titles((select client_id from k2), '[{"kind": "program", "source": "programs", "match_key": "rustdesk|purslane", "name": "RustDesk", "platforms": ["macos", "windows", "dos"]}]');
+select results_eq($q$select platforms, reports_count from public.entries where match_key = 'rustdesk|purslane'$q$, $q$values (array['macos', 'windows'], 2)$q$,
+  'the entry keeps the union of the OS families clients send (known values only); a re-send counts no new client');
 select throws_ok($$select public.submit_titles((select client_id from k1), (select jsonb_agg('{}'::jsonb) from generate_series(1, 501)))$$, '22023', null, 'at most 500 titles');
 
 -- Reclassification requests -----------------------------------------------------------------------

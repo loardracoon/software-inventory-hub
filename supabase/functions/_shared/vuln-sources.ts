@@ -20,7 +20,11 @@ export type Range = {
   version_end: string | null;
   end_inclusive: boolean;
   exact_version: string | null;
+  // Operating systems the range applies to (windows, macos, linux); absent or null = every one.
+  platforms?: Platform[] | null;
 };
+
+export type Platform = "windows" | "macos" | "linux";
 
 export type Vulnerability = {
   vuln_id: string; // CVE id, or the OSV id when there is no CVE
@@ -128,7 +132,7 @@ type NvdCve = {
   descriptions?: { lang?: string; value?: string }[];
   metrics?: Record<string, { type?: string; cvssData?: { version?: string; baseScore?: number; baseSeverity?: string; vectorString?: string } ; baseSeverity?: string }[]>;
   weaknesses?: { description?: { lang?: string; value?: string }[] }[];
-  configurations?: { nodes?: { cpeMatch?: CpeMatch[] }[] }[];
+  configurations?: { operator?: string; nodes?: { cpeMatch?: CpeMatch[] }[] }[];
   references?: { url?: string }[];
 };
 type CpeMatch = {
@@ -140,21 +144,58 @@ type CpeMatch = {
   versionEndExcluding?: string;
 };
 
-// Ranges of the configurations that name this CPE (vendor:product) as vulnerable.
+// The computer OS of a CPE target_sw ("windows", "macos", ...); null = not a computer OS or not set.
+export function targetPlatform(targetSw: string): Platform | null {
+  const t = targetSw.toLowerCase();
+  if (t.startsWith("windows") && !MOBILE_TARGETS.has(t)) return "windows";
+  if (/^(macos|mac_os|mac_os_x|macosx|os_x)$/.test(t)) return "macos";
+  if (t === "linux" || t.endsWith("_linux")) return "linux";
+  return null;
+}
+
+// The OS of an operating system CPE (part "o"), as NVD names them in "running on" configurations.
+export function osPlatform(vendor: string, product: string): Platform | "mobile" | null {
+  if (vendor === "microsoft" && product.startsWith("windows")) return product.includes("phone") || product.includes("mobile") ? "mobile" : "windows";
+  if (vendor === "apple") return /^(mac_os|macos|mac_os_x|mac_os_x_server)$/.test(product) ? "macos" : /^(iphone_os|ipados|ios|watchos|tvos)$/.test(product) ? "mobile" : null;
+  if (vendor === "google" && product === "android") return "mobile";
+  if (/linux/.test(product) || ["canonical", "debian", "redhat", "fedoraproject", "suse", "opensuse", "centos", "rockylinux", "almalinux", "oracle"].includes(vendor)) return "linux";
+  return null;
+}
+
+// Ranges of the configurations that name this CPE (vendor:product) as vulnerable. Mobile-only matches
+// are left out (clients inventory computers). Each range carries its OS: the CPE's target_sw, else the OS
+// of an AND configuration ("app X running on OS Y"), else none (every OS).
 export function nvdRanges(cve: NvdCve, cpeVendor: string, cpeProduct: string): Range[] {
   const out: Range[] = [];
   for (const conf of cve.configurations ?? []) {
+    const runningOn = new Set<Platform | "mobile">();
+    if ((conf.operator ?? "").toUpperCase() === "AND") {
+      for (const node of conf.nodes ?? []) {
+        for (const m of node.cpeMatch ?? []) {
+          const c = m.criteria ? parseCpe(m.criteria) : null;
+          if (c && c.part === "o" && !m.vulnerable) {
+            const p = osPlatform(c.vendor, c.product);
+            if (p) runningOn.add(p);
+          }
+        }
+      }
+    }
+    const confPlatforms = [...runningOn].filter((p): p is Platform => p !== "mobile").sort();
+    // Only mobile operating systems in an AND configuration: an app for phones.
+    if (runningOn.size > 0 && confPlatforms.length === 0) continue;
     for (const node of conf.nodes ?? []) {
       for (const m of node.cpeMatch ?? []) {
         const c = m.criteria ? parseCpe(m.criteria) : null;
         if (!m.vulnerable || !c || c.vendor !== cpeVendor || c.product !== cpeProduct || MOBILE_TARGETS.has(c.targetSw)) continue;
         const exact = c.version !== "*" && c.version !== "-" ? c.version.replace(/\\(.)/g, "$1") : null;
+        const target = targetPlatform(c.targetSw);
         out.push({
           version_start: m.versionStartIncluding ?? m.versionStartExcluding ?? null,
           start_inclusive: m.versionStartExcluding === undefined,
           version_end: m.versionEndIncluding ?? m.versionEndExcluding ?? null,
           end_inclusive: m.versionEndExcluding === undefined,
           exact_version: exact,
+          platforms: target ? [target] : confPlatforms.length ? confPlatforms : null,
         });
       }
     }
@@ -272,15 +313,32 @@ export function cnaRanges(affected: CnaAffected[], cpeVendor: string, cpeProduct
   const computers = mine.filter((a) => !mobile(a));
   const ranges: Range[] = [];
   for (const a of computers) {
+    const platforms = cnaPlatforms(a);
     for (const v of a.versions ?? []) {
       if (v.status && v.status !== "affected") continue;
       const start = cnaVersion(v.version);
       const end = cnaVersion(v.lessThan) ?? cnaVersion(v.lessThanOrEqual);
-      if (end) ranges.push({ version_start: start, start_inclusive: true, version_end: end, end_inclusive: !cnaVersion(v.lessThan), exact_version: null });
-      else if (start && !v.lessThan && !v.lessThanOrEqual) ranges.push({ version_start: null, start_inclusive: true, version_end: null, end_inclusive: true, exact_version: start });
+      if (end) ranges.push({ version_start: start, start_inclusive: true, version_end: end, end_inclusive: !cnaVersion(v.lessThan), exact_version: null, platforms });
+      else if (start && !v.lessThan && !v.lessThanOrEqual) ranges.push({ version_start: null, start_inclusive: true, version_end: null, end_inclusive: true, exact_version: start, platforms });
     }
   }
   return { mobileOnly: mine.length > 0 && computers.length === 0, ranges };
+}
+
+// The computer OS of a CNA entry, from its CPEs, platforms or product name ("OneDrive for Mac"); null = any.
+export function cnaPlatforms(a: CnaAffected): Platform[] | null {
+  const found = new Set<Platform>();
+  for (const c of a.cpes ?? []) {
+    const p = parseCpe(c);
+    const t = p ? targetPlatform(p.targetSw) : null;
+    if (t) found.add(t);
+  }
+  for (const text of [...(a.platforms ?? []), a.product ?? ""]) {
+    if (/\bwindows\b/i.test(text) && !/windows (phone|mobile)/i.test(text)) found.add("windows");
+    if (/\b(macos|mac os|os x|mac)\b/i.test(text)) found.add("macos");
+    if (/\b(linux|ubuntu|debian|red hat|rhel|fedora|suse|centos)\b/i.test(text)) found.add("linux");
+  }
+  return found.size ? [...found].sort() : null;
 }
 
 export async function fetchCnaAffected(fetchFn: FetchLike, cveId: string, timeoutMs = 20_000): Promise<CnaAffected[]> {

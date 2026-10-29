@@ -8,7 +8,7 @@ truncate public.clients, public.classification_runs, public.audit_log, public.hu
 delete from public.entries;
 delete from public.products;
 
-select plan(38);
+select plan(43);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-00000000000a', 'admin@example.com'),
@@ -104,6 +104,15 @@ select public.vuln_set_epss('[{"cve_id": "CVE-2021-23337", "epss": 0.41, "percen
 select is(pg_temp.events() - current_setting('t.before')::int, 1, 'a small EPSS change is not');
 
 -- The client feed ----------------------------------------------------------------------------------------------------
+select is(public.vuln_store(pg_temp.product('7-Zip'), 'nvd', '[{"vuln_id": "CVE-2030-9", "ranges": [{"version_end": "2.0", "platforms": ["windows"]}]}]', false, null) ->> 'changed', '1',
+  'a range with an OS is stored');
+select is((select platforms from public.vulnerability_ranges where vuln_id = 'CVE-2030-9'), array['windows'], 'with its OS');
+select is(public.vuln_store(pg_temp.product('7-Zip'), 'nvd', '[{"vuln_id": "CVE-2030-9", "ranges": [{"version_end": "2.0", "platforms": ["macos"]}]}]', false, null) ->> 'changed', '1',
+  'another OS is a change');
+select is(public.vuln_store(pg_temp.product('7-Zip'), 'nvd', '[{"vuln_id": "CVE-2030-9", "ranges": [{"version_end": "2.0", "platforms": ["macos"]}]}]', false, null) ->> 'changed', '0',
+  'the same OS is not');
+select ok((public.vulnerability_changes('c0000000-0000-0000-0000-000000000001', 0) -> 'items') @> '[{"vuln_id": "CVE-2030-9", "ranges": [{"platforms": ["macos"]}]}]',
+  'the feed sends the OS of each range');
 select ok((public.vulnerability_changes('c0000000-0000-0000-0000-000000000001', 0) -> 'items') @>
   '[{"vuln_id": "CVE-2025-0411", "product_key": "program|igor pavlov|7-zip", "removed": false, "kev_added": "2025-02-06"}]', 'the feed carries the product key, KEV and ranges');
 select ok((public.vulnerability_changes('c0000000-0000-0000-0000-000000000001', 0) -> 'items') @> '[{"vuln_id": "CVE-2016-2334", "removed": true}]',

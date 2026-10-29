@@ -30,6 +30,7 @@ import { DossierCard } from "@/features/engines/dossier-card";
 import { ProductCard } from "@/features/dictionary/product-card";
 import { VulnsCard } from "@/features/vulns/vulns-card";
 import { runJev } from "@/features/jev/api";
+import { platformsText } from "@/features/vulns/api";
 import { AttentionBadge, ProbabilityBar } from "@/features/jev/jev-bits";
 import { formatDateTime } from "@/lib/format";
 import { useLoad } from "@/lib/use-load";
@@ -198,6 +199,7 @@ function Summary({ e }: { e: EntryDetail }) {
         <span className="text-sm text-text-muted">
           Revision {e.revision} · {e.method ? METHOD_LABEL[e.method] : "not decided"}
           {e.confidence !== null ? ` ${Number(e.confidence).toFixed(2)}` : ""} · reported by {e.reports_count} client(s)
+          {e.platforms?.length ? ` · seen on ${platformsText(e.platforms)}` : ""}
         </span>
       </div>
       <div className="flex flex-wrap items-center gap-2 text-sm">

@@ -3,11 +3,13 @@
 
 export const KINDS = ["program", "extension", "ide_extension", "package"] as const;
 export const MAX_TITLES = 500;
-export const TITLE_FIELDS = ["kind", "source", "match_key", "name", "vendor", "description"] as const;
+// platforms (optional): the OS families where the client found the title, never versions or counts.
+export const TITLE_FIELDS = ["kind", "source", "match_key", "name", "vendor", "description", "platforms"] as const;
+export const PLATFORMS = ["windows", "macos", "linux"] as const;
 const REQUEST_FIELDS = ["kind", "source", "match_key", "suggested_category_id", "reason", "evidence_url"] as const;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export type Title = { kind: string; source: string; match_key: string; name: string; vendor: string | null; description: string | null };
+export type Title = { kind: string; source: string; match_key: string; name: string; vendor: string | null; description: string | null; platforms: string[] | null };
 export type RequestInput = {
   kind: string;
   source: string;
@@ -36,6 +38,14 @@ function onlyFields(o: Record<string, unknown>, allowed: readonly string[], wher
   if (extra.length) throw new Error(`${where}: fields not allowed: ${extra.join(", ")}`);
 }
 
+function platforms(v: unknown): string[] | null {
+  if (v === undefined || v === null) return null;
+  if (!Array.isArray(v) || v.length > PLATFORMS.length || v.some((p) => !PLATFORMS.includes(p as (typeof PLATFORMS)[number]))) {
+    throw new Error(`platforms must be a list of ${PLATFORMS.join(", ")}`);
+  }
+  return v.length ? [...new Set(v as string[])].sort() : null;
+}
+
 function kind(v: unknown): string {
   if (!KINDS.includes(v as (typeof KINDS)[number])) throw new Error(`kind must be one of ${KINDS.join(", ")}`);
   return v as string;
@@ -60,6 +70,7 @@ export function validateTitles(body: unknown): Result<Title[]> {
             name: text(t.name, "name", 300, true)!,
             vendor: text(t.vendor, "vendor", 300, false),
             description: text(t.description, "description", 1000, false),
+            platforms: platforms(t.platforms),
           };
         } catch (e) {
           throw new Error(`titles[${i}]: ${(e as Error).message}`);

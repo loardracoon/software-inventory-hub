@@ -15,6 +15,13 @@ describe("validateTitles", () => {
     expect(validateTitles({ titles: [title], tenant: "Acme" })).toEqual({ ok: false, error: "body: fields not allowed: tenant" });
   });
 
+  it("accepts the optional OS families of a title and refuses anything else there", () => {
+    const r = validateTitles({ titles: [{ ...title, platforms: ["windows", "macos", "windows"] }, title] });
+    expect(r.ok && r.value.map((t) => t.platforms)).toEqual([["macos", "windows"], null]);
+    expect(validateTitles({ titles: [{ ...title, platforms: ["windows 11"] }] })).toMatchObject({ ok: false, error: expect.stringContaining("platforms must be a list of windows, macos, linux") });
+    expect(validateTitles({ titles: [{ ...title, platforms: "windows" }] }).ok).toBe(false);
+  });
+
   it("enforces counts, kinds and lengths", () => {
     expect(validateTitles({ titles: Array.from({ length: 501 }, () => title) }).ok).toBe(false);
     expect(validateTitles({ titles: [] }).ok).toBe(false);

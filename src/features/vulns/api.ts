@@ -5,7 +5,18 @@ import { db, invokeFunction, orThrow } from "@/lib/supabase-query";
 
 export type CpeCandidate = Database["public"]["Views"]["v_cpe_candidates"]["Row"];
 export type ProductCpe = Database["public"]["Tables"]["product_cpes"]["Row"];
-export type Range = { version_start: string | null; start_inclusive: boolean; version_end: string | null; end_inclusive: boolean; exact_version: string | null; source: string };
+export type Range = {
+  version_start: string | null;
+  start_inclusive: boolean;
+  version_end: string | null;
+  end_inclusive: boolean;
+  exact_version: string | null;
+  source: string;
+  platforms?: string[] | null; // null = every OS
+};
+
+export const PLATFORM_LABEL: Record<string, string> = { windows: "Windows", macos: "macOS", linux: "Linux" };
+export const platformsText = (p: string[] | null | undefined) => (p ?? []).map((x) => PLATFORM_LABEL[x] ?? x).join(", ");
 export type ProductVuln = Omit<Database["public"]["Views"]["v_product_vulns"]["Row"], "ranges"> & { ranges: Range[] };
 export type VulnStatus = {
   products_with_cpe: number;
@@ -45,10 +56,11 @@ export async function fetchVulnStatus(): Promise<VulnStatus | null> {
   return orThrow(await db().rpc("vuln_status")) as unknown as VulnStatus | null;
 }
 
-// "≤ 24.09", "15.0 – 15.05", "= 9.20", "all versions".
+// "≤ 24.09", "15.0 – 15.05", "= 9.20", "all versions"; "(Windows only)" when the range names an OS.
 export function rangeText(r: Range): string {
-  if (r.exact_version) return `= ${r.exact_version}`;
+  const os = r.platforms?.length ? ` (${platformsText(r.platforms)} only)` : "";
+  if (r.exact_version) return `= ${r.exact_version}${os}`;
   const start = r.version_start ? `${r.start_inclusive ? "≥" : ">"} ${r.version_start}` : "";
   const end = r.version_end ? `${r.end_inclusive ? "≤" : "<"} ${r.version_end}` : "";
-  return [start, end].filter(Boolean).join(" and ") || "all versions";
+  return ([start, end].filter(Boolean).join(" and ") || "all versions") + os;
 }

@@ -76,7 +76,7 @@ The single source of truth for software titles (programs, browser and IDE extens
 ## Client API (Edge Functions, `Authorization: Bearer <client key>`)
 
 - `GET dictionary-changes?since=<seq>&limit=1000` → `{ entries, categories, next_seq, has_more }`, published fields only, deprecated entries included.
-- `POST titles-submit` → up to 500 titles, metadata only, any other field rejected.
+- `POST titles-submit` → up to 500 titles, metadata only (plus optional `platforms`: the OS families windows, macos, linux where the client found the title; entries keep the union), any other field rejected.
 - `POST reclassification-requests` → `{ id: "REQ-0042", status: "open" }`, deduplicated per client and entry, emails every admin.
 - `GET reclassification-requests?ids=` → status and admin note, caller's requests only.
 

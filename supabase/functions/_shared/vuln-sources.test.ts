@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   cnaRanges,
+  nvdRanges,
+  osPlatform,
+  targetPlatform,
   cpeToken,
   fetchCnaAffected,
   fetchEpss,
@@ -145,8 +148,8 @@ describe("NVD", () => {
     const v = parseNvdCve(NVD_7ZIP.vulnerabilities[1].cve, "7-zip", "7-zip")!;
     expect(v).toMatchObject({ cvss_version: "2.0", cvss_score: 9.3, severity: "HIGH" });
     expect(v.ranges).toEqual([
-      { version_start: null, start_inclusive: true, version_end: null, end_inclusive: true, exact_version: "9.20" },
-      { version_start: "15.0", start_inclusive: true, version_end: "15.05", end_inclusive: true, exact_version: null },
+      { version_start: null, start_inclusive: true, version_end: null, end_inclusive: true, exact_version: "9.20", platforms: null },
+      { version_start: "15.0", start_inclusive: true, version_end: "15.05", end_inclusive: true, exact_version: null, platforms: null },
     ]);
     expect(parseNvdCve({ id: "CVE-1", vulnStatus: "Rejected" }, "a", "b")).toBeNull();
   });
@@ -299,12 +302,14 @@ describe("CNA affected data", () => {
     expect(cnaRanges(record, "microsoft", "onedrive")).toEqual({
       mobileOnly: false,
       ranges: [
-        { version_start: null, start_inclusive: true, version_end: "20.114.0607.0002", end_inclusive: false, exact_version: null },
-        { version_start: null, start_inclusive: true, version_end: null, end_inclusive: true, exact_version: "19.2" },
+        { version_start: null, start_inclusive: true, version_end: "20.114.0607.0002", end_inclusive: false, exact_version: null, platforms: ["windows"] },
+        { version_start: null, start_inclusive: true, version_end: null, end_inclusive: true, exact_version: "19.2", platforms: ["windows"] },
       ],
     });
     const byCpe = [{ product: "Something else", cpes: ["cpe:2.3:a:7-zip:7-zip:*:*:*:*:*:*:*:*"], versions: [{ version: "9.0", lessThanOrEqual: "24.08", status: "affected" }] }];
-    expect(cnaRanges(byCpe, "7-zip", "7-zip").ranges).toEqual([{ version_start: "9.0", start_inclusive: true, version_end: "24.08", end_inclusive: true, exact_version: null }]);
+    expect(cnaRanges(byCpe, "7-zip", "7-zip").ranges).toEqual([{ version_start: "9.0", start_inclusive: true, version_end: "24.08", end_inclusive: true, exact_version: null, platforms: null }]);
+    const mac = [{ product: "OneDrive for Mac", platforms: ["macOS"], versions: [{ version: "0", lessThan: "24.1", status: "affected" }] }];
+    expect(cnaRanges(mac, "microsoft", "onedrive").ranges[0].platforms).toEqual(["macos"]);
     expect(cnaRanges([], "microsoft", "onedrive")).toEqual({ mobileOnly: false, ranges: [] });
   });
 
@@ -312,5 +317,33 @@ describe("CNA affected data", () => {
     const f = vi.fn<FetchLike>(async () => json({ containers: { cna: { affected: [{ product: "OneDrive for Windows" }] } } }));
     expect(await fetchCnaAffected(f, "CVE-2020-1465")).toEqual([{ product: "OneDrive for Windows" }]);
     expect(f.mock.calls[0][0]).toBe("https://cveawg.mitre.org/api/cve/CVE-2020-1465");
+  });
+});
+
+describe("Operating systems of a range", () => {
+  it("map CPE target_sw and OS CPEs to windows, macos or linux", () => {
+    expect(["windows", "windows_10", "macos", "mac_os_x", "linux", "ubuntu_linux", "android", "*", "-"].map(targetPlatform)).toEqual([
+      "windows", "windows", "macos", "macos", "linux", "linux", null, null, null,
+    ]);
+    expect(osPlatform("microsoft", "windows_server_2019")).toBe("windows");
+    expect(osPlatform("apple", "macos")).toBe("macos");
+    expect(osPlatform("apple", "iphone_os")).toBe("mobile");
+    expect(osPlatform("canonical", "ubuntu_linux")).toBe("linux");
+    expect(osPlatform("linux", "linux_kernel")).toBe("linux");
+  });
+
+  it("take the target_sw, else the OS of an AND configuration ('running on'), else every OS", () => {
+    const app = (criteria: string, extra: object = {}) => ({ vulnerable: true, criteria, versionEndExcluding: "24.1", ...extra });
+    const os = (criteria: string) => ({ vulnerable: false, criteria });
+    const cve = {
+      id: "CVE-1",
+      configurations: [
+        { nodes: [{ cpeMatch: [app("cpe:2.3:a:microsoft:onedrive:*:*:*:*:*:windows:*:*")] }] },
+        { operator: "AND", nodes: [{ cpeMatch: [app("cpe:2.3:a:microsoft:onedrive:*:*:*:*:*:*:*:*")] }, { cpeMatch: [os("cpe:2.3:o:apple:macos:-:*:*:*:*:*:*:*")] }] },
+        { operator: "AND", nodes: [{ cpeMatch: [app("cpe:2.3:a:microsoft:onedrive:*:*:*:*:*:*:*:*")] }, { cpeMatch: [os("cpe:2.3:o:apple:iphone_os:-:*:*:*:*:*:*:*")] }] },
+        { nodes: [{ cpeMatch: [app("cpe:2.3:a:microsoft:onedrive:*:*:*:*:*:*:*:*")] }] },
+      ],
+    };
+    expect(nvdRanges(cve, "microsoft", "onedrive").map((r) => r.platforms)).toEqual([["windows"], ["macos"], null]);
   });
 });

@@ -275,14 +275,14 @@ isOneToOne: false
                   ]
                 },"entries": {
                   Row: {
-                    "attention_override": Database["public"]['Enums']["attention_level"] | null,"canonical_name": string,"category_id": string | null,"confidence": number | null,"created_at": string,"description": string | null,"first_reported_at": string | null,"id": string,"kind": Database["public"]['Enums']["entry_kind"],"last_reported_at": string | null,"match_key": string,"method": Database["public"]['Enums']["entry_method"] | null,"model_version": string | null,"product_id": string | null,"product_locked": boolean,"reports_count": number,"reviewed_at": string | null,"reviewed_by": string | null,"revision": number,"seq": number,"source": string,"status": Database["public"]['Enums']["entry_status"],"updated_at": string,"vendor": string | null
+                    "attention_override": Database["public"]['Enums']["attention_level"] | null,"canonical_name": string,"category_id": string | null,"confidence": number | null,"created_at": string,"description": string | null,"first_reported_at": string | null,"id": string,"kind": Database["public"]['Enums']["entry_kind"],"last_reported_at": string | null,"match_key": string,"method": Database["public"]['Enums']["entry_method"] | null,"model_version": string | null,"platforms": (string)[] | null,"product_id": string | null,"product_locked": boolean,"reports_count": number,"reviewed_at": string | null,"reviewed_by": string | null,"revision": number,"seq": number,"source": string,"status": Database["public"]['Enums']["entry_status"],"updated_at": string,"vendor": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "attention_override"?: Database["public"]['Enums']["attention_level"] | null,"canonical_name": string,"category_id"?: string | null,"confidence"?: number | null,"created_at"?: string,"description"?: string | null,"first_reported_at"?: string | null,"id"?: string,"kind": Database["public"]['Enums']["entry_kind"],"last_reported_at"?: string | null,"match_key": string,"method"?: Database["public"]['Enums']["entry_method"] | null,"model_version"?: string | null,"product_id"?: string | null,"product_locked"?: boolean,"reports_count"?: number,"reviewed_at"?: string | null,"reviewed_by"?: string | null,"revision"?: number,"seq"?: number,"source": string,"status"?: Database["public"]['Enums']["entry_status"],"updated_at"?: string,"vendor"?: string | null
+                    "attention_override"?: Database["public"]['Enums']["attention_level"] | null,"canonical_name": string,"category_id"?: string | null,"confidence"?: number | null,"created_at"?: string,"description"?: string | null,"first_reported_at"?: string | null,"id"?: string,"kind": Database["public"]['Enums']["entry_kind"],"last_reported_at"?: string | null,"match_key": string,"method"?: Database["public"]['Enums']["entry_method"] | null,"model_version"?: string | null,"platforms"?: (string)[] | null,"product_id"?: string | null,"product_locked"?: boolean,"reports_count"?: number,"reviewed_at"?: string | null,"reviewed_by"?: string | null,"revision"?: number,"seq"?: number,"source": string,"status"?: Database["public"]['Enums']["entry_status"],"updated_at"?: string,"vendor"?: string | null
                   }
                   Update: {
-                    "attention_override"?: Database["public"]['Enums']["attention_level"] | null,"canonical_name"?: string,"category_id"?: string | null,"confidence"?: number | null,"created_at"?: string,"description"?: string | null,"first_reported_at"?: string | null,"id"?: string,"kind"?: Database["public"]['Enums']["entry_kind"],"last_reported_at"?: string | null,"match_key"?: string,"method"?: Database["public"]['Enums']["entry_method"] | null,"model_version"?: string | null,"product_id"?: string | null,"product_locked"?: boolean,"reports_count"?: number,"reviewed_at"?: string | null,"reviewed_by"?: string | null,"revision"?: number,"seq"?: number,"source"?: string,"status"?: Database["public"]['Enums']["entry_status"],"updated_at"?: string,"vendor"?: string | null
+                    "attention_override"?: Database["public"]['Enums']["attention_level"] | null,"canonical_name"?: string,"category_id"?: string | null,"confidence"?: number | null,"created_at"?: string,"description"?: string | null,"first_reported_at"?: string | null,"id"?: string,"kind"?: Database["public"]['Enums']["entry_kind"],"last_reported_at"?: string | null,"match_key"?: string,"method"?: Database["public"]['Enums']["entry_method"] | null,"model_version"?: string | null,"platforms"?: (string)[] | null,"product_id"?: string | null,"product_locked"?: boolean,"reports_count"?: number,"reviewed_at"?: string | null,"reviewed_by"?: string | null,"revision"?: number,"seq"?: number,"source"?: string,"status"?: Database["public"]['Enums']["entry_status"],"updated_at"?: string,"vendor"?: string | null
                   }
                   Relationships: [
                     {
@@ -617,14 +617,14 @@ isOneToOne: false
                   ]
                 },"submissions": {
                   Row: {
-                    "client_id": string,"description": string | null,"id": number,"kind": Database["public"]['Enums']["entry_kind"],"match_key": string,"name": string,"received_at": string,"source": string,"vendor": string | null
+                    "client_id": string,"description": string | null,"id": number,"kind": Database["public"]['Enums']["entry_kind"],"match_key": string,"name": string,"platforms": (string)[] | null,"received_at": string,"source": string,"vendor": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "client_id": string,"description"?: string | null,"id"?: never,"kind": Database["public"]['Enums']["entry_kind"],"match_key": string,"name": string,"received_at"?: string,"source": string,"vendor"?: string | null
+                    "client_id": string,"description"?: string | null,"id"?: never,"kind": Database["public"]['Enums']["entry_kind"],"match_key": string,"name": string,"platforms"?: (string)[] | null,"received_at"?: string,"source": string,"vendor"?: string | null
                   }
                   Update: {
-                    "client_id"?: string,"description"?: string | null,"id"?: never,"kind"?: Database["public"]['Enums']["entry_kind"],"match_key"?: string,"name"?: string,"received_at"?: string,"source"?: string,"vendor"?: string | null
+                    "client_id"?: string,"description"?: string | null,"id"?: never,"kind"?: Database["public"]['Enums']["entry_kind"],"match_key"?: string,"name"?: string,"platforms"?: (string)[] | null,"received_at"?: string,"source"?: string,"vendor"?: string | null
                   }
                   Relationships: [
                     {
@@ -685,14 +685,14 @@ isOneToOne: false
                   ]
                 },"vulnerabilities": {
                   Row: {
-                    "aliases": (string)[],"cvss_score": number | null,"cvss_vector": string | null,"cvss_version": string | null,"cwe": (string)[],"epss": number | null,"epss_date": string | null,"epss_percentile": number | null,"kev_added": string | null,"kev_due": string | null,"kev_ransomware": string | null,"modified": string | null,"published": string | null,"refs": (string)[],"severity": string | null,"source": string,"summary": string | null,"updated_at": string,"vuln_id": string
+                    "aliases": (string)[],"cvss_score": number | null,"cvss_vector": string | null,"cvss_version": string | null,"cwe": (string)[],"epss": number | null,"epss_date": string | null,"epss_percentile": number | null,"kev_added": string | null,"kev_due": string | null,"kev_flagged_at": string | null,"kev_ransomware": string | null,"modified": string | null,"published": string | null,"refs": (string)[],"severity": string | null,"source": string,"summary": string | null,"updated_at": string,"vuln_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "aliases"?: (string)[],"cvss_score"?: number | null,"cvss_vector"?: string | null,"cvss_version"?: string | null,"cwe"?: (string)[],"epss"?: number | null,"epss_date"?: string | null,"epss_percentile"?: number | null,"kev_added"?: string | null,"kev_due"?: string | null,"kev_ransomware"?: string | null,"modified"?: string | null,"published"?: string | null,"refs"?: (string)[],"severity"?: string | null,"source": string,"summary"?: string | null,"updated_at"?: string,"vuln_id": string
+                    "aliases"?: (string)[],"cvss_score"?: number | null,"cvss_vector"?: string | null,"cvss_version"?: string | null,"cwe"?: (string)[],"epss"?: number | null,"epss_date"?: string | null,"epss_percentile"?: number | null,"kev_added"?: string | null,"kev_due"?: string | null,"kev_flagged_at"?: string | null,"kev_ransomware"?: string | null,"modified"?: string | null,"published"?: string | null,"refs"?: (string)[],"severity"?: string | null,"source": string,"summary"?: string | null,"updated_at"?: string,"vuln_id": string
                   }
                   Update: {
-                    "aliases"?: (string)[],"cvss_score"?: number | null,"cvss_vector"?: string | null,"cvss_version"?: string | null,"cwe"?: (string)[],"epss"?: number | null,"epss_date"?: string | null,"epss_percentile"?: number | null,"kev_added"?: string | null,"kev_due"?: string | null,"kev_ransomware"?: string | null,"modified"?: string | null,"published"?: string | null,"refs"?: (string)[],"severity"?: string | null,"source"?: string,"summary"?: string | null,"updated_at"?: string,"vuln_id"?: string
+                    "aliases"?: (string)[],"cvss_score"?: number | null,"cvss_vector"?: string | null,"cvss_version"?: string | null,"cwe"?: (string)[],"epss"?: number | null,"epss_date"?: string | null,"epss_percentile"?: number | null,"kev_added"?: string | null,"kev_due"?: string | null,"kev_flagged_at"?: string | null,"kev_ransomware"?: string | null,"modified"?: string | null,"published"?: string | null,"refs"?: (string)[],"severity"?: string | null,"source"?: string,"summary"?: string | null,"updated_at"?: string,"vuln_id"?: string
                   }
                   Relationships: [
                     
@@ -713,14 +713,14 @@ isOneToOne: false
                   ]
                 },"vulnerability_ranges": {
                   Row: {
-                    "cpe_id": string | null,"end_inclusive": boolean,"exact_version": string | null,"id": number,"product_id": string,"source": string,"start_inclusive": boolean,"version_end": string | null,"version_start": string | null,"vuln_id": string
+                    "cpe_id": string | null,"end_inclusive": boolean,"exact_version": string | null,"id": number,"platforms": (string)[] | null,"product_id": string,"source": string,"start_inclusive": boolean,"version_end": string | null,"version_start": string | null,"vuln_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "cpe_id"?: string | null,"end_inclusive"?: boolean,"exact_version"?: string | null,"id"?: never,"product_id": string,"source": string,"start_inclusive"?: boolean,"version_end"?: string | null,"version_start"?: string | null,"vuln_id": string
+                    "cpe_id"?: string | null,"end_inclusive"?: boolean,"exact_version"?: string | null,"id"?: never,"platforms"?: (string)[] | null,"product_id": string,"source": string,"start_inclusive"?: boolean,"version_end"?: string | null,"version_start"?: string | null,"vuln_id": string
                   }
                   Update: {
-                    "cpe_id"?: string | null,"end_inclusive"?: boolean,"exact_version"?: string | null,"id"?: never,"product_id"?: string,"source"?: string,"start_inclusive"?: boolean,"version_end"?: string | null,"version_start"?: string | null,"vuln_id"?: string
+                    "cpe_id"?: string | null,"end_inclusive"?: boolean,"exact_version"?: string | null,"id"?: never,"platforms"?: (string)[] | null,"product_id"?: string,"source"?: string,"start_inclusive"?: boolean,"version_end"?: string | null,"version_start"?: string | null,"vuln_id"?: string
                   }
                   Relationships: [
                     {
@@ -1082,6 +1082,12 @@ isOneToOne: false
                            },
 "pause_engine":
 { Args: { "p_engine": string,"p_reason": string }; Returns: undefined
+                           },
+"platform_list":
+{ Args: { "p": Json }; Returns: (string)[]
+                           },
+"platform_union":
+{ Args: { "a": (string)[],"b": (string)[] }; Returns: (string)[]
                            },
 "product_for":
 { Args: { "p_kind": Database["public"]['Enums']["entry_kind"],"p_name": string,"p_vendor": string }; Returns: string
