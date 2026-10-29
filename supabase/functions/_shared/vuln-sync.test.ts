@@ -115,6 +115,47 @@ describe("runVulnSync (cron)", () => {
   });
 });
 
+describe("runVulnSync with CNA data", () => {
+  // NVD gives no version ("-") for three OneDrive CVEs; the CNA records decide.
+  const noVersion = (id: string) => ({
+    cve: { id, descriptions: [{ lang: "en", value: id }], configurations: [{ nodes: [{ cpeMatch: [{ vulnerable: true, criteria: "cpe:2.3:a:microsoft:onedrive:-:*:*:*:*:*:*:*" }] }] }] },
+  });
+  const cna: Record<string, unknown> = {
+    "CVE-A": [{ product: "OneDrive for Android", versions: [{ version: "1.0", lessThan: "6.46", status: "affected" }] }],
+    "CVE-B": [{ product: "OneDrive for Windows", versions: [{ version: "0", lessThan: "20.114.0607.0002", status: "affected" }] }],
+    "CVE-C": [{ product: "OneDrive for Windows", versions: [{ version: "unspecified", status: "affected" }] }],
+  };
+  const net = () =>
+    vi.fn<FetchLike>(async (url) => {
+      const u = new URL(url);
+      if (u.host === "cveawg.mitre.org") {
+        const id = u.pathname.split("/").pop()!;
+        return id === "CVE-D" ? json({ error: "down" }, 503) : json({ containers: { cna: { affected: cna[id] } } });
+      }
+      if (u.pathname.endsWith("/cves/2.0")) return json({ totalResults: 4, resultsPerPage: 4, vulnerabilities: ["CVE-A", "CVE-B", "CVE-C", "CVE-D"].map(noVersion) });
+      return json({}, 404);
+    });
+
+  it("full read: drops mobile-only CVEs, takes CNA ranges, keeps NVD's when the CNA has none or fails", async () => {
+    const { db, calls } = fakeDb({ kevDue: false, cpesDue: [{ id: "c1", product_id: "p1", cpe_vendor: "microsoft", cpe_product: "onedrive", synced_at: null }] });
+    const s = await runVulnSync(db, { fetchFn: net(), nvdKey: "k", timeLeft: () => 100_000, ...clock() });
+    const stored = calls.find((x) => x.fn === "vuln_store")!.args.p_vulns as { vuln_id: string; ranges: { version_end: string | null }[] }[];
+    expect(stored.map((v) => v.vuln_id)).toEqual(["CVE-B", "CVE-C", "CVE-D"]);
+    expect(stored[0].ranges).toEqual([{ version_start: null, start_inclusive: true, version_end: "20.114.0607.0002", end_inclusive: false, exact_version: null }]);
+    expect(stored[1].ranges[0].version_end).toBeNull();
+    expect(s.cna_calls).toBe(4);
+    expect(s.errors).toEqual([]);
+  });
+
+  it("incremental read: a mobile-only CVE is sent with no ranges so the stored ones are deleted", async () => {
+    const { db, calls } = fakeDb({ kevDue: false, cpesDue: [{ id: "c1", product_id: "p1", cpe_vendor: "microsoft", cpe_product: "onedrive", synced_at: "2026-10-27T12:00:00Z" }] });
+    await runVulnSync(db, { fetchFn: net(), nvdKey: "k", timeLeft: () => 100_000, ...clock(), now: () => Date.parse("2026-10-28T12:00:00Z") });
+    const stored = calls.find((x) => x.fn === "vuln_store")!.args;
+    expect(stored.p_full).toBe(false);
+    expect((stored.p_vulns as { vuln_id: string; ranges: unknown[] }[]).find((v) => v.vuln_id === "CVE-A")!.ranges).toEqual([]);
+  });
+});
+
 describe("runVulnSync (Refresh one product)", () => {
   it("reads every confirmed CPE in full", async () => {
     const { db, calls } = fakeDb();

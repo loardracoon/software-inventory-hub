@@ -1,9 +1,13 @@
-// The vuln-sync run (phase H7): CVEs of confirmed CPEs (NVD), CPE search for products without a confirmed
-// CPE, packages (OSV), KEV when due, then EPSS. Stops before the time limit; the next hourly run
+// The vuln-sync run (phase H7): CVEs of confirmed CPEs (NVD; for CVEs where NVD names no version, the
+// CNA record's ranges, or nothing when the CNA names only mobile apps), CPE search for products without a
+// confirmed CPE, packages (OSV), KEV when due, then EPSS. Stops before the time limit; the next hourly run
 // continues. NVD calls are spaced to its limit (5 per 30 s without a key, 50 with one).
 // Runtime-neutral: the database is any client with rpc(), the network any fetch.
 
 import {
+  cnaRanges,
+  fetchCnaAffected,
+  unbounded,
   fetchEpss,
   fetchKev,
   fetchNvdCves,
@@ -37,11 +41,14 @@ export type SyncSummary = {
   epss: number;
   nvd_calls: number;
   osv_calls: number;
+  cna_calls: number;
   complete: boolean;
   errors: string[];
 };
 
 const MIN_TIME_LEFT_MS = 15_000;
+// CNA records read per run (one call per CVE that NVD gives no version for); the next runs read the rest.
+const CNA_PER_RUN = 60;
 const SEARCH_RESERVE_MS = 45_000;
 
 async function call<T>(db: RpcClient, fn: string, args: Record<string, unknown> = {}): Promise<T> {
@@ -55,7 +62,7 @@ async function call<T>(db: RpcClient, fn: string, args: Record<string, unknown> 
 const withRanges = (vulns: Vulnerability[]) => vulns.filter((v) => v.ranges.length > 0);
 
 export async function runVulnSync(db: RpcClient, o: SyncOptions): Promise<SyncSummary> {
-  const s: SyncSummary = { kev: null, cpe_searches: 0, cpes_confirmed: 0, cpe_candidates: 0, cpes_read: 0, osv_packages: 0, vulns_changed: 0, epss: 0, nvd_calls: 0, osv_calls: 0, complete: true, errors: [] };
+  const s: SyncSummary = { kev: null, cpe_searches: 0, cpes_confirmed: 0, cpe_candidates: 0, cpes_read: 0, osv_packages: 0, vulns_changed: 0, epss: 0, nvd_calls: 0, osv_calls: 0, cna_calls: 0, complete: true, errors: [] };
   const now = o.now ?? Date.now;
   const gap = o.nvdKey ? 700 : 6500;
   let lastNvd = 0;
@@ -90,16 +97,41 @@ export async function runVulnSync(db: RpcClient, o: SyncOptions): Promise<SyncSu
     }
   };
 
+  // CVEs whose NVD ranges name no version: the CNA's ranges for computers, [] when it names only mobile
+  // apps (the CVE then leaves the product), else NVD's ranges stay ("may apply" on the clients).
+  // dropped: CVEs left out for mobile apps; an incremental read still sends them (with no ranges) so the
+  // ranges stored before are deleted.
+  const withCna = async (vulns: Vulnerability[], cpeVendor: string, cpeProduct: string): Promise<{ vulns: Vulnerability[]; dropped: Set<string> }> => {
+    const out: Vulnerability[] = [];
+    const dropped = new Set<string>();
+    for (const v of vulns) {
+      if (!v.ranges.length || !v.ranges.every(unbounded) || s.cna_calls >= CNA_PER_RUN || !enough()) {
+        out.push(v);
+        continue;
+      }
+      try {
+        s.cna_calls++;
+        const cna = cnaRanges(await fetchCnaAffected(o.fetchFn, v.vuln_id), cpeVendor, cpeProduct);
+        if (cna.mobileOnly) dropped.add(v.vuln_id);
+        out.push(cna.mobileOnly ? { ...v, ranges: [] } : cna.ranges.length ? { ...v, ranges: cna.ranges } : v);
+      } catch {
+        out.push(v); // the CNA record is optional: keep NVD's ranges
+      }
+    }
+    return { vulns: out, dropped };
+  };
+
   const readCpe = async (cpe: { id: string; product_id: string; cpe_vendor: string; cpe_product: string; synced_at: string | null }) => {
     try {
       const since = cpe.synced_at ? new Date(Date.parse(cpe.synced_at) - 86_400_000) : null;
       await paceNvd();
       const r = await fetchNvdCves(o.fetchFn, cpe.cpe_vendor, cpe.cpe_product, { ...nvd, lastModStart: since, now: new Date(now()), pause: paceNvd });
       s.nvd_calls += r.calls;
+      const cna = await withCna(r.vulns, cpe.cpe_vendor, cpe.cpe_product);
       const stored = await call<{ changed: number }>(db, "vuln_store", {
         p_product_id: cpe.product_id,
         p_source: "nvd",
-        p_vulns: withRanges(r.vulns),
+        p_vulns: since === null ? withRanges(cna.vulns) : cna.vulns.filter((v) => v.ranges.length > 0 || cna.dropped.has(v.vuln_id)),
         p_full: since === null,
         p_cpe_id: cpe.id,
       });

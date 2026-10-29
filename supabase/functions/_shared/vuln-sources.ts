@@ -232,6 +232,64 @@ export async function fetchNvdCves(
   return { vulns, calls };
 }
 
+// CNA data (CVE JSON 5, CVE Services API, no key). NVD writes no version ("-") for many CVEs; the CNA
+// record of the same CVE sometimes has real version ranges, or shows that only a mobile app is affected.
+export const CVE_RECORD = "https://cveawg.mitre.org/api/cve";
+
+export type CnaAffected = {
+  vendor?: string;
+  product?: string;
+  platforms?: string[];
+  cpes?: string[];
+  versions?: { version?: string; lessThan?: string; lessThanOrEqual?: string; status?: string; versionType?: string }[];
+};
+
+// True when the range names no version at all (NVD "-" or "*" without bounds).
+export const unbounded = (r: Range) => !r.version_start && !r.version_end && !r.exact_version;
+
+const MOBILE_WORDS = /\b(android|ios|iphone|ipad|ipados|windows phone|windows mobile|blackberry)\b/i;
+// A usable CNA version has a digit and is not a placeholder ("unspecified", "publication", "*").
+const cnaVersion = (v: string | undefined) => (v && /\d/.test(v) && !/^(0|\*|n\/a|unspecified|publication)$/i.test(v.trim()) ? v.trim() : null);
+
+// The CNA entries of this CPE: by its CPE list when it has one, else by the CPE product's words in the
+// CNA product name ("onedrive" in "OneDrive for Windows"). mobileOnly: every such entry is a mobile app.
+// ranges: the real version ranges of the entries for computers ([] when the CNA has none).
+export function cnaRanges(affected: CnaAffected[], cpeVendor: string, cpeProduct: string): { mobileOnly: boolean; ranges: Range[] } {
+  const product = cpeToken(cpeProduct);
+  const mine = affected.filter((a) => {
+    const cpes = (a.cpes ?? []).map(parseCpe).filter((c): c is NonNullable<typeof c> => !!c);
+    if (cpes.length) return cpes.some((c) => c.vendor === cpeVendor && c.product === cpeProduct);
+    const name = cpeToken(a.product ?? "");
+    if (product !== "" && ` ${name} `.includes(` ${product} `)) return true;
+    // "One Drive for Android" is still OneDrive: compare without spaces when the name is long enough.
+    const compact = product.replace(/ /g, "");
+    return compact.length >= 4 && name.replace(/ /g, "").includes(compact);
+  });
+  const mobile = (a: CnaAffected) =>
+    MOBILE_WORDS.test(a.product ?? "") ||
+    (a.platforms ?? []).some((p) => MOBILE_WORDS.test(p)) ||
+    (a.cpes ?? []).some((c) => MOBILE_TARGETS.has(parseCpe(c)?.targetSw ?? ""));
+  const computers = mine.filter((a) => !mobile(a));
+  const ranges: Range[] = [];
+  for (const a of computers) {
+    for (const v of a.versions ?? []) {
+      if (v.status && v.status !== "affected") continue;
+      const start = cnaVersion(v.version);
+      const end = cnaVersion(v.lessThan) ?? cnaVersion(v.lessThanOrEqual);
+      if (end) ranges.push({ version_start: start, start_inclusive: true, version_end: end, end_inclusive: !cnaVersion(v.lessThan), exact_version: null });
+      else if (start && !v.lessThan && !v.lessThanOrEqual) ranges.push({ version_start: null, start_inclusive: true, version_end: null, end_inclusive: true, exact_version: start });
+    }
+  }
+  return { mobileOnly: mine.length > 0 && computers.length === 0, ranges };
+}
+
+export async function fetchCnaAffected(fetchFn: FetchLike, cveId: string, timeoutMs = 20_000): Promise<CnaAffected[]> {
+  const body = (await getJson(fetchFn, `${CVE_RECORD}/${encodeURIComponent(cveId)}`, { headers: { Accept: "application/json" } }, timeoutMs)) as {
+    containers?: { cna?: { affected?: CnaAffected[] } };
+  };
+  return body.containers?.cna?.affected ?? [];
+}
+
 type OsvVuln = {
   id?: string;
   aliases?: string[];

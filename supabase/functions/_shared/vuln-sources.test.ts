@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  cnaRanges,
   cpeToken,
+  fetchCnaAffected,
   fetchEpss,
   fetchKev,
   fetchNvdCves,
@@ -269,5 +271,46 @@ describe("KEV and EPSS", () => {
     expect(f.mock.calls[0][0]).toContain("cve=CVE-2025-0411");
     expect(await fetchEpss(f, [])).toEqual([]);
     await expect(fetchEpss(f, Array.from({ length: 101 }, (_, i) => `CVE-1-${i}`))).rejects.toThrow(/100/);
+  });
+});
+
+// Shapes of real CNA records (cveawg.mitre.org/api/cve/<id>, containers.cna.affected).
+describe("CNA affected data", () => {
+  it("drops a CVE whose matching CNA entries are only mobile apps", () => {
+    const android = [{ vendor: "Microsoft", product: "OneDrive for Android", platforms: ["Unknown"], versions: [{ version: "1.0", lessThan: "6.46", status: "affected" }] }];
+    expect(cnaRanges(android, "microsoft", "onedrive")).toEqual({ mobileOnly: true, ranges: [] });
+    // CVE-2020-0654 writes the name with a space.
+    expect(cnaRanges([{ product: "One Drive for Android", versions: [{ version: "unspecified", status: "affected" }] }], "microsoft", "onedrive").mobileOnly).toBe(true);
+    expect(cnaRanges([{ product: "Google Chrome" }], "x", "go").mobileOnly).toBe(false);
+  });
+
+  it("gives no ranges for placeholders: unspecified, 0 to publication", () => {
+    expect(cnaRanges([{ product: "OneDrive for Windows", versions: [{ version: "unspecified", status: "affected" }] }], "microsoft", "onedrive")).toEqual({ mobileOnly: false, ranges: [] });
+    const publication = [{ product: "OneDrive for Windows", cpes: ["cpe:2.3:a:microsoft:onedrive:-:*:*:*:*:windows:*:*"], versions: [{ version: "0", lessThan: "publication", status: "affected" }] }];
+    expect(cnaRanges(publication, "microsoft", "onedrive")).toEqual({ mobileOnly: false, ranges: [] });
+  });
+
+  it("reads real version ranges and exact versions for computers, by CPE or by product words", () => {
+    const record = [
+      { product: "Microsoft Office", versions: [{ version: "16.0", lessThan: "16.0.1", status: "affected" }] },
+      { product: "OneDrive for Windows", versions: [{ version: "0", lessThan: "20.114.0607.0002", status: "affected" }, { version: "19.2", status: "affected" }, { version: "21.0", status: "unaffected" }] },
+      { product: "OneDrive for iOS", versions: [{ version: "1.0", lessThanOrEqual: "12.0", status: "affected" }] },
+    ];
+    expect(cnaRanges(record, "microsoft", "onedrive")).toEqual({
+      mobileOnly: false,
+      ranges: [
+        { version_start: null, start_inclusive: true, version_end: "20.114.0607.0002", end_inclusive: false, exact_version: null },
+        { version_start: null, start_inclusive: true, version_end: null, end_inclusive: true, exact_version: "19.2" },
+      ],
+    });
+    const byCpe = [{ product: "Something else", cpes: ["cpe:2.3:a:7-zip:7-zip:*:*:*:*:*:*:*:*"], versions: [{ version: "9.0", lessThanOrEqual: "24.08", status: "affected" }] }];
+    expect(cnaRanges(byCpe, "7-zip", "7-zip").ranges).toEqual([{ version_start: "9.0", start_inclusive: true, version_end: "24.08", end_inclusive: true, exact_version: null }]);
+    expect(cnaRanges([], "microsoft", "onedrive")).toEqual({ mobileOnly: false, ranges: [] });
+  });
+
+  it("reads the record from the CVE Services API", async () => {
+    const f = vi.fn<FetchLike>(async () => json({ containers: { cna: { affected: [{ product: "OneDrive for Windows" }] } } }));
+    expect(await fetchCnaAffected(f, "CVE-2020-1465")).toEqual([{ product: "OneDrive for Windows" }]);
+    expect(f.mock.calls[0][0]).toBe("https://cveawg.mitre.org/api/cve/CVE-2020-1465");
   });
 });

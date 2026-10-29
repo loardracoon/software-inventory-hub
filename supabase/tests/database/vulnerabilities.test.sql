@@ -8,7 +8,7 @@ truncate public.clients, public.classification_runs, public.audit_log, public.hu
 delete from public.entries;
 delete from public.products;
 
-select plan(35);
+select plan(38);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-00000000000a', 'admin@example.com'),
@@ -90,6 +90,11 @@ select set_config('t.before', pg_temp.events()::text, true);
 select is(public.vuln_set_kev('[{"cve_id": "CVE-2021-23337", "date_added": "2026-10-01", "due_date": "2026-10-22", "ransomware": "Known"}]'), 1,
   'KEV flags a stored CVE');
 select is(pg_temp.events() - current_setting('t.before')::int, 1, 'with an event for its product');
+select ok((select title = 'Known exploited vulnerability for lodash: CVE-2021-23337 (CISA KEV since 2026-10-01)' from public.notifications order by id desc limit 1),
+  'a CVE the KEV catalog adds later notifies the Inbox for its product');
+select ok((select kev_flagged_at > now() - interval '1 minute' from public.vulnerabilities where vuln_id = 'CVE-2021-23337'), 'and is stamped as flagged now');
+select results_eq($q$select k ->> 'vuln_id', k -> 'products' from jsonb_array_elements(public.build_digest() -> 'new_kev') k order by 1$q$,
+  $q$values ('CVE-2021-23337', '["lodash"]'::jsonb), ('CVE-2025-0411', '["7-Zip"]'::jsonb)$q$, 'the daily digest lists CVEs that became known exploited in 24 hours');
 select is(public.vuln_kev_due(), false, 'KEV is not due again for 20 hours');
 select is((select count(*)::int from public.vuln_epss_due()), 3, 'EPSS is due for every stored CVE with a range');
 select set_config('t.before', pg_temp.events()::text, true);
