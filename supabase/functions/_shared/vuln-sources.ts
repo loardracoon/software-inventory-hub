@@ -65,11 +65,16 @@ async function getJson(fetchFn: FetchLike, url: string, init: RequestInit = {}, 
   }
 }
 
-// cpe:2.3:part:vendor:product:version:... (escaped characters keep their backslash).
-export function parseCpe(cpe: string): { part: string; vendor: string; product: string; version: string } | null {
+// Clients inventory computers (Windows, macOS, Linux): a CPE match only for a mobile platform, such as
+// OneDrive for Android, does not apply to them.
+export const MOBILE_TARGETS = new Set(["android", "iphone_os", "ios", "ipados", "windows_phone", "windows_mobile", "blackberry"]);
+
+// cpe:2.3:part:vendor:product:version:update:edition:language:sw_edition:target_sw:... (escaped
+// characters keep their backslash).
+export function parseCpe(cpe: string): { part: string; vendor: string; product: string; version: string; targetSw: string } | null {
   const parts = cpe.split(/(?<!\\):/);
   if (parts.length < 6 || parts[0] !== "cpe" || parts[1] !== "2.3") return null;
-  return { part: parts[2], vendor: parts[3], product: parts[4], version: parts[5] };
+  return { part: parts[2], vendor: parts[3], product: parts[4], version: parts[5], targetSw: parts[10] ?? "*" };
 }
 
 // Lower case, CPE escapes removed, every separator the same: "7-Zip" and "7_zip" compare equal.
@@ -142,7 +147,7 @@ export function nvdRanges(cve: NvdCve, cpeVendor: string, cpeProduct: string): R
     for (const node of conf.nodes ?? []) {
       for (const m of node.cpeMatch ?? []) {
         const c = m.criteria ? parseCpe(m.criteria) : null;
-        if (!m.vulnerable || !c || c.vendor !== cpeVendor || c.product !== cpeProduct) continue;
+        if (!m.vulnerable || !c || c.vendor !== cpeVendor || c.product !== cpeProduct || MOBILE_TARGETS.has(c.targetSw)) continue;
         const exact = c.version !== "*" && c.version !== "-" ? c.version.replace(/\\(.)/g, "$1") : null;
         out.push({
           version_start: m.versionStartIncluding ?? m.versionStartExcluding ?? null,

@@ -149,6 +149,17 @@ describe("NVD", () => {
     expect(parseNvdCve({ id: "CVE-1", vulnStatus: "Rejected" }, "a", "b")).toBeNull();
   });
 
+  it("leaves out CPE matches for mobile platforms (clients inventory computers)", () => {
+    const cve = (target: string) => ({
+      id: "CVE-2020-0654",
+      configurations: [{ nodes: [{ cpeMatch: [{ vulnerable: true, criteria: `cpe:2.3:a:microsoft:onedrive:-:*:*:*:*:${target}:*:*` }] }] }],
+    });
+    expect(parseNvdCve(cve("android"), "microsoft", "onedrive")!.ranges).toEqual([]);
+    expect(parseNvdCve(cve("iphone_os"), "microsoft", "onedrive")!.ranges).toEqual([]);
+    expect(parseNvdCve(cve("*"), "microsoft", "onedrive")!.ranges).toHaveLength(1);
+    expect(parseCpe("cpe:2.3:a:microsoft:onedrive:-:*:*:*:*:android:*:*")?.targetSw).toBe("android");
+  });
+
   it("pages through CVEs and asks for changes only within NVD's 120-day window", async () => {
     const page = (start: number, ids: string[]) => ({ resultsPerPage: ids.length, startIndex: start, totalResults: 3, vulnerabilities: ids.map((id) => ({ cve: { id } })) });
     const f = fakeFetch(page(0, ["CVE-1", "CVE-2"]), page(2, ["CVE-3"]));
