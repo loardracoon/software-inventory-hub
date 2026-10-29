@@ -163,7 +163,7 @@ spec:
           imagePullPolicy: IfNotPresent
           env:
             - { name: SUPABASE_URL, value: "http://kong:8000" }
-            - { name: NO_VERIFY_JWT, value: "dictionary-changes,titles-submit,reclassification-requests,jev,digest,research" }
+            - { name: NO_VERIFY_JWT, value: "dictionary-changes,titles-submit,reclassification-requests,jev,digest,research,vuln-sync,vulnerability-changes" }
             - { name: JWT_SECRET, valueFrom: { secretKeyRef: { name: supabase, key: JWT_SECRET } } }
             - { name: SUPABASE_ANON_KEY, valueFrom: { secretKeyRef: { name: supabase, key: ANON_KEY } } }
             - { name: SUPABASE_SERVICE_ROLE_KEY, valueFrom: { secretKeyRef: { name: supabase, key: SERVICE_ROLE_KEY } } }

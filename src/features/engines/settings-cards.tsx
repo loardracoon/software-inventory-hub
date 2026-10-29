@@ -11,7 +11,20 @@ import { Eyebrow } from "@/components/shared/eyebrow";
 import { Field, NativeSelect } from "@/components/shared/filters";
 import { formatDateTime } from "@/lib/format";
 import { useLoad } from "@/lib/use-load";
-import { clearProviderKey, fetchEngine, fetchProviderKeys, JEV_PROVIDERS, PROVIDERS, setEngineConfig, setProviderKey, TRIGGERS, type Engine, type Provider, type ProviderKey } from "./api";
+import {
+  clearProviderKey,
+  fetchEngine,
+  fetchProviderKeys,
+  JEV_PROVIDERS,
+  PROVIDERS,
+  setEngineConfig,
+  setProviderKey,
+  TRIGGERS,
+  type Engine,
+  type KeyedProvider,
+  type Provider,
+  type ProviderKey,
+} from "./api";
 
 // Settings › AI providers: one write-only key per provider, kept in Vault. The console only sees the hint.
 export function AiProvidersCard() {
@@ -40,7 +53,7 @@ export function AiProvidersCard() {
   );
 }
 
-function ProviderKeyRow({ provider, label, current, onChanged }: { provider: Provider; label: string; current: ProviderKey | null; onChanged: () => void }) {
+export function ProviderKeyRow({ provider, label, current, onChanged }: { provider: KeyedProvider; label: string; current: ProviderKey | null; onChanged: () => void }) {
   const [key, setKey] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);

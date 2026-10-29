@@ -28,6 +28,7 @@ import { useHubRole } from "@/features/auth/auth-context";
 import { runResearch } from "@/features/engines/api";
 import { DossierCard } from "@/features/engines/dossier-card";
 import { ProductCard } from "@/features/dictionary/product-card";
+import { VulnsCard } from "@/features/vulns/vulns-card";
 import { runJev } from "@/features/jev/api";
 import { AttentionBadge, ProbabilityBar } from "@/features/jev/jev-bits";
 import { formatDateTime } from "@/lib/format";
@@ -113,6 +114,7 @@ export function EntryPage() {
         <>
           <Summary e={e} />
           <ProductCard entryId={e.id} productId={e.product_id} kind={e.kind} onChanged={reload} />
+          <VulnsCard productId={e.product_id} />
           {canCurate ? <EditCard key={`${e.revision}:${data.data?.draft?.saved_at ?? ""}`} e={e} draft={data.data?.draft ?? null} options={level2Options(categories.data ?? [])} onChanged={reload} /> : null}
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <Card className="gap-3 px-6">

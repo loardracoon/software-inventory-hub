@@ -409,6 +409,70 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"product_cpes": {
+                  Row: {
+                    "cpe_product": string,"cpe_vendor": string,"created_at": string,"decided_at": string | null,"decided_by": string | null,"id": string,"last_error": string | null,"product_id": string,"source": string,"status": Database["public"]['Enums']["cpe_status"],"synced_at": string | null,"title": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "cpe_product": string,"cpe_vendor": string,"created_at"?: string,"decided_at"?: string | null,"decided_by"?: string | null,"id"?: string,"last_error"?: string | null,"product_id": string,"source": string,"status"?: Database["public"]['Enums']["cpe_status"],"synced_at"?: string | null,"title"?: string | null
+                  }
+                  Update: {
+                    "cpe_product"?: string,"cpe_vendor"?: string,"created_at"?: string,"decided_at"?: string | null,"decided_by"?: string | null,"id"?: string,"last_error"?: string | null,"product_id"?: string,"source"?: string,"status"?: Database["public"]['Enums']["cpe_status"],"synced_at"?: string | null,"title"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "product_cpes_product_id_fkey"
+      columns: ["product_id"]
+isOneToOne: false
+      referencedRelation: "products"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "product_cpes_product_id_fkey"
+      columns: ["product_id"]
+isOneToOne: false
+      referencedRelation: "v_product_conflicts"
+      referencedColumns: ["product_id"]
+    },{
+      foreignKeyName: "product_cpes_product_id_fkey"
+      columns: ["product_id"]
+isOneToOne: false
+      referencedRelation: "v_products"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"product_vuln_state": {
+                  Row: {
+                    "cpe_searched_at": string | null,"last_error": string | null,"osv_synced_at": string | null,"product_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "cpe_searched_at"?: string | null,"last_error"?: string | null,"osv_synced_at"?: string | null,"product_id": string
+                  }
+                  Update: {
+                    "cpe_searched_at"?: string | null,"last_error"?: string | null,"osv_synced_at"?: string | null,"product_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "product_vuln_state_product_id_fkey"
+      columns: ["product_id"]
+isOneToOne: true
+      referencedRelation: "products"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "product_vuln_state_product_id_fkey"
+      columns: ["product_id"]
+isOneToOne: true
+      referencedRelation: "v_product_conflicts"
+      referencedColumns: ["product_id"]
+    },{
+      foreignKeyName: "product_vuln_state_product_id_fkey"
+      columns: ["product_id"]
+isOneToOne: true
+      referencedRelation: "v_products"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"products": {
                   Row: {
                     "created_at": string,"display_name": string,"id": string,"kind": Database["public"]['Enums']["entry_kind"],"product_key": string,"vendor": string | null
@@ -591,6 +655,118 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"vuln_sync_runs": {
+                  Row: {
+                    "errors": (string)[],"finished_at": string | null,"id": number,"started_at": string,"summary": Json | null,"trigger": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "errors"?: (string)[],"finished_at"?: string | null,"id"?: never,"started_at"?: string,"summary"?: Json | null,"trigger": string
+                  }
+                  Update: {
+                    "errors"?: (string)[],"finished_at"?: string | null,"id"?: never,"started_at"?: string,"summary"?: Json | null,"trigger"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"vuln_sync_state": {
+                  Row: {
+                    "key": string,"updated_at": string,"value": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "key": string,"updated_at"?: string,"value"?: string | null
+                  }
+                  Update: {
+                    "key"?: string,"updated_at"?: string,"value"?: string | null
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"vulnerabilities": {
+                  Row: {
+                    "aliases": (string)[],"cvss_score": number | null,"cvss_vector": string | null,"cvss_version": string | null,"cwe": (string)[],"epss": number | null,"epss_date": string | null,"epss_percentile": number | null,"kev_added": string | null,"kev_due": string | null,"kev_ransomware": string | null,"modified": string | null,"published": string | null,"refs": (string)[],"severity": string | null,"source": string,"summary": string | null,"updated_at": string,"vuln_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "aliases"?: (string)[],"cvss_score"?: number | null,"cvss_vector"?: string | null,"cvss_version"?: string | null,"cwe"?: (string)[],"epss"?: number | null,"epss_date"?: string | null,"epss_percentile"?: number | null,"kev_added"?: string | null,"kev_due"?: string | null,"kev_ransomware"?: string | null,"modified"?: string | null,"published"?: string | null,"refs"?: (string)[],"severity"?: string | null,"source": string,"summary"?: string | null,"updated_at"?: string,"vuln_id": string
+                  }
+                  Update: {
+                    "aliases"?: (string)[],"cvss_score"?: number | null,"cvss_vector"?: string | null,"cvss_version"?: string | null,"cwe"?: (string)[],"epss"?: number | null,"epss_date"?: string | null,"epss_percentile"?: number | null,"kev_added"?: string | null,"kev_due"?: string | null,"kev_ransomware"?: string | null,"modified"?: string | null,"published"?: string | null,"refs"?: (string)[],"severity"?: string | null,"source"?: string,"summary"?: string | null,"updated_at"?: string,"vuln_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"vulnerability_events": {
+                  Row: {
+                    "created_at": string,"product_id": string,"seq": number,"vuln_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"product_id": string,"seq"?: never,"vuln_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"product_id"?: string,"seq"?: never,"vuln_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"vulnerability_ranges": {
+                  Row: {
+                    "cpe_id": string | null,"end_inclusive": boolean,"exact_version": string | null,"id": number,"product_id": string,"source": string,"start_inclusive": boolean,"version_end": string | null,"version_start": string | null,"vuln_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "cpe_id"?: string | null,"end_inclusive"?: boolean,"exact_version"?: string | null,"id"?: never,"product_id": string,"source": string,"start_inclusive"?: boolean,"version_end"?: string | null,"version_start"?: string | null,"vuln_id": string
+                  }
+                  Update: {
+                    "cpe_id"?: string | null,"end_inclusive"?: boolean,"exact_version"?: string | null,"id"?: never,"product_id"?: string,"source"?: string,"start_inclusive"?: boolean,"version_end"?: string | null,"version_start"?: string | null,"vuln_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "vulnerability_ranges_cpe_id_fkey"
+      columns: ["cpe_id"]
+isOneToOne: false
+      referencedRelation: "product_cpes"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "vulnerability_ranges_cpe_id_fkey"
+      columns: ["cpe_id"]
+isOneToOne: false
+      referencedRelation: "v_cpe_candidates"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "vulnerability_ranges_product_id_fkey"
+      columns: ["product_id"]
+isOneToOne: false
+      referencedRelation: "products"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "vulnerability_ranges_product_id_fkey"
+      columns: ["product_id"]
+isOneToOne: false
+      referencedRelation: "v_product_conflicts"
+      referencedColumns: ["product_id"]
+    },{
+      foreignKeyName: "vulnerability_ranges_product_id_fkey"
+      columns: ["product_id"]
+isOneToOne: false
+      referencedRelation: "v_products"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "vulnerability_ranges_vuln_id_fkey"
+      columns: ["vuln_id"]
+isOneToOne: false
+      referencedRelation: "v_product_vulns"
+      referencedColumns: ["vuln_id"]
+    },{
+      foreignKeyName: "vulnerability_ranges_vuln_id_fkey"
+      columns: ["vuln_id"]
+isOneToOne: false
+      referencedRelation: "vulnerabilities"
+      referencedColumns: ["vuln_id"]
+    }
+                  ]
                 }
           }
           Views: {
@@ -607,6 +783,32 @@ isOneToOne: false
                          }
                         Relationships: [
                     
+                  ]
+                },"v_cpe_candidates": {
+                  Row: {
+                    "cpe_product": string,"cpe_vendor": string,"created_at": string,"display_name": string,"entry_id": string | null,"id": string,"product_id": string,"title": string | null,"vendor": string | null
+                  }
+                  ComputedFields: never
+                  Relationships: [
+                    {
+      foreignKeyName: "product_cpes_product_id_fkey"
+      columns: ["product_id"]
+isOneToOne: false
+      referencedRelation: "products"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "product_cpes_product_id_fkey"
+      columns: ["product_id"]
+isOneToOne: false
+      referencedRelation: "v_product_conflicts"
+      referencedColumns: ["product_id"]
+    },{
+      foreignKeyName: "product_cpes_product_id_fkey"
+      columns: ["product_id"]
+isOneToOne: false
+      referencedRelation: "v_products"
+      referencedColumns: ["id"]
+    }
                   ]
                 },"v_missing_prices": {
                   Row: {
@@ -629,6 +831,32 @@ isOneToOne: false
                   ComputedFields: never
                   Relationships: [
                     
+                  ]
+                },"v_product_vulns": {
+                  Row: {
+                    "aliases": (string)[],"cvss_score": number | null,"cvss_version": string | null,"epss": number | null,"epss_percentile": number | null,"kev_added": string | null,"kev_due": string | null,"kev_ransomware": string | null,"product_id": string,"published": string | null,"ranges": Json | null,"refs": (string)[],"severity": string | null,"summary": string | null,"vuln_id": string
+                  }
+                  ComputedFields: never
+                  Relationships: [
+                    {
+      foreignKeyName: "vulnerability_ranges_product_id_fkey"
+      columns: ["product_id"]
+isOneToOne: false
+      referencedRelation: "products"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "vulnerability_ranges_product_id_fkey"
+      columns: ["product_id"]
+isOneToOne: false
+      referencedRelation: "v_product_conflicts"
+      referencedColumns: ["product_id"]
+    },{
+      foreignKeyName: "vulnerability_ranges_product_id_fkey"
+      columns: ["product_id"]
+isOneToOne: false
+      referencedRelation: "v_products"
+      referencedColumns: ["id"]
+    }
                   ]
                 },"v_products": {
                   Row: {
@@ -728,6 +956,9 @@ isOneToOne: false
 "add_access_rule":
 { Args: { "p_kind": string,"p_role": Database["public"]['Enums']["hub_role"],"p_value": string }; Returns: string
                            },
+"add_cpe":
+{ Args: { "p_cpe": string,"p_product_id": string }; Returns: string
+                           },
 "admin_pause_engine":
 { Args: { "p_engine": string }; Returns: undefined
                            },
@@ -752,6 +983,9 @@ isOneToOne: false
 { Args: { "p_contact_email": string,"p_name": string }; Returns: {
               "client_id": string,"client_key": string
             }[]
+                           },
+"decide_cpe":
+{ Args: { "p_accept": boolean,"p_id": string }; Returns: undefined
                            },
 "decide_entry_requests":
 { Args: { "p_accept": boolean,"p_category_id"?: string,"p_entry_id": string,"p_note": string }; Returns: number
@@ -812,6 +1046,9 @@ isOneToOne: false
 { Args: Record<PropertyKey, never>; Returns: number
                            },
 "invoke_research":
+{ Args: Record<PropertyKey, never>; Returns: number
+                           },
+"invoke_vuln_sync":
 { Args: Record<PropertyKey, never>; Returns: number
                            },
 "is_hub_admin":
@@ -942,10 +1179,61 @@ isOneToOne: false
                            },
 "vendor_key":
 { Args: { "p_vendor": string }; Returns: string
+                           },
+"vuln_cpes_due":
+{ Args: { "p_limit"?: number }; Returns: {
+              "cpe_product": string,"cpe_vendor": string,"id": string,"product_id": string,"synced_at": string
+            }[]
+                           },
+"vuln_epss_due":
+{ Args: { "p_limit"?: number }; Returns: string[]
+                           },
+"vuln_kev_due":
+{ Args: Record<PropertyKey, never>; Returns: boolean
+                           },
+"vuln_mark_error":
+{ Args: { "p_cpe_id": string,"p_error": string,"p_product_id": string }; Returns: undefined
+                           },
+"vuln_packages_due":
+{ Args: { "p_limit"?: number }; Returns: {
+              "ecosystem": string,"package_name": string,"product_id": string
+            }[]
+                           },
+"vuln_product_info":
+{ Args: { "p_product_id": string }; Returns: Json
+                           },
+"vuln_products_due":
+{ Args: { "p_limit"?: number }; Returns: {
+              "display_name": string,"product_id": string,"vendor_key": string
+            }[]
+                           },
+"vuln_run_finish":
+{ Args: { "p_errors": (string)[],"p_id": number,"p_summary": Json }; Returns: undefined
+                           },
+"vuln_run_start":
+{ Args: { "p_trigger": string }; Returns: number
+                           },
+"vuln_set_epss":
+{ Args: { "p_rows": Json }; Returns: number
+                           },
+"vuln_set_kev":
+{ Args: { "p_rows": Json }; Returns: number
+                           },
+"vuln_status":
+{ Args: Record<PropertyKey, never>; Returns: Json
+                           },
+"vuln_store":
+{ Args: { "p_cpe_id"?: string,"p_full": boolean,"p_product_id": string,"p_source": string,"p_vulns": Json }; Returns: Json
+                           },
+"vuln_store_cpes":
+{ Args: { "p_candidates": Json,"p_error"?: string,"p_product_id": string }; Returns: Json
+                           },
+"vulnerability_changes":
+{ Args: { "p_client_id": string,"p_limit"?: number,"p_since": number }; Returns: Json
                            }
           }
           Enums: {
-            "attention_level": "info"|"review"|"not_allowed","client_status": "active"|"revoked","entry_kind": "program"|"extension"|"ide_extension"|"package","entry_method": "rule"|"jev"|"jev_auto"|"manual","entry_status": "pending"|"proposed"|"published"|"deprecated","event_type": "published"|"reclassified"|"description_changed"|"deprecated"|"category_changed","hub_role": "admin"|"operator"|"viewer","request_status": "open"|"accepted"|"rejected"|"superseded","run_status": "running"|"finished"|"failed"|"cancelled"
+            "attention_level": "info"|"review"|"not_allowed","client_status": "active"|"revoked","cpe_status": "candidate"|"confirmed"|"rejected","entry_kind": "program"|"extension"|"ide_extension"|"package","entry_method": "rule"|"jev"|"jev_auto"|"manual","entry_status": "pending"|"proposed"|"published"|"deprecated","event_type": "published"|"reclassified"|"description_changed"|"deprecated"|"category_changed","hub_role": "admin"|"operator"|"viewer","request_status": "open"|"accepted"|"rejected"|"superseded","run_status": "running"|"finished"|"failed"|"cancelled"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -1065,7 +1353,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "attention_level": ["info", "review", "not_allowed"],"client_status": ["active", "revoked"],"entry_kind": ["program", "extension", "ide_extension", "package"],"entry_method": ["rule", "jev", "jev_auto", "manual"],"entry_status": ["pending", "proposed", "published", "deprecated"],"event_type": ["published", "reclassified", "description_changed", "deprecated", "category_changed"],"hub_role": ["admin", "operator", "viewer"],"request_status": ["open", "accepted", "rejected", "superseded"],"run_status": ["running", "finished", "failed", "cancelled"]
+            "attention_level": ["info", "review", "not_allowed"],"client_status": ["active", "revoked"],"cpe_status": ["candidate", "confirmed", "rejected"],"entry_kind": ["program", "extension", "ide_extension", "package"],"entry_method": ["rule", "jev", "jev_auto", "manual"],"entry_status": ["pending", "proposed", "published", "deprecated"],"event_type": ["published", "reclassified", "description_changed", "deprecated", "category_changed"],"hub_role": ["admin", "operator", "viewer"],"request_status": ["open", "accepted", "rejected", "superseded"],"run_status": ["running", "finished", "failed", "cancelled"]
           }
         }
 } as const

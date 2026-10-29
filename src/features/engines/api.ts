@@ -6,6 +6,8 @@ import type { EngineStatus } from "@/features/jev/api";
 
 export type EngineName = "jev" | "research";
 export type Provider = "claude" | "gemini" | "openai" | "grok";
+// Keys in Vault: the AI providers, plus the NVD API key (Settings › Data sources).
+export type KeyedProvider = Provider | "nvd";
 export const PROVIDERS: { value: Provider; label: string; defaultModel: string }[] = [
   { value: "claude", label: "Claude (Anthropic)", defaultModel: "claude-opus-5-5" },
   { value: "gemini", label: "Gemini (Google)", defaultModel: "gemini-2.5-flash" },
@@ -62,7 +64,7 @@ export type Price = {
 };
 export type PriceInput = Omit<Price, "effective_from">;
 export type MissingPrice = { engine: string; provider: string; model: string };
-export type ProviderKey = { provider: Provider; key_hint: string; configured_at: string };
+export type ProviderKey = { provider: KeyedProvider; key_hint: string; configured_at: string };
 export type EventRow = { seq: number; type: string; created_at: string; entry: { id: string; canonical_name: string } | null; category: { name: string } | null };
 export type DossierRow = {
   id: number;
@@ -152,11 +154,11 @@ export async function fetchProviderKeys(): Promise<ProviderKey[]> {
   return (orThrow(await db().from("provider_keys").select("provider, key_hint, configured_at")) ?? []) as ProviderKey[];
 }
 
-export async function setProviderKey(provider: Provider, key: string): Promise<void> {
+export async function setProviderKey(provider: KeyedProvider, key: string): Promise<void> {
   orThrow(await db().rpc("set_provider_key", { p_provider: provider, p_key: key }));
 }
 
-export async function clearProviderKey(provider: Provider): Promise<void> {
+export async function clearProviderKey(provider: KeyedProvider): Promise<void> {
   orThrow(await db().rpc("clear_provider_key", { p_provider: provider }));
 }
 

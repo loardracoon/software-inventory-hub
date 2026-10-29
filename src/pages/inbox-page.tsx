@@ -36,6 +36,8 @@ import { formatDate, formatNumber } from "@/lib/format";
 import { useLoad } from "@/lib/use-load";
 import { GroupingReview } from "@/features/dictionary/grouping-review";
 import { fetchProductConflicts } from "@/features/dictionary/api";
+import { fetchCpeCandidates } from "@/features/vulns/api";
+import { CpeMatches } from "@/features/vulns/cpe-matches";
 
 const MAX_RUN = 50;
 const KIND: Record<string, string> = { program: "Program", extension: "Browser extension", ide_extension: "IDE extension", package: "Package" };
@@ -46,6 +48,7 @@ export function InboxPage() {
   const proposals = useLoad(`proposals:${version}`, fetchProposals);
   const requests = useLoad(`requests:${version}`, fetchRequestGroups);
   const conflicts = useLoad(`conflicts:${version}`, fetchProductConflicts);
+  const cpes = useLoad(`cpe-candidates:${version}`, fetchCpeCandidates);
   return (
     <>
       <PageHeader eyebrow="Review" title="Inbox" description="Reclassification requests from clients, new titles and the categories Jev proposes." />
@@ -55,6 +58,7 @@ export function InboxPage() {
           <TabsTrigger value="new">New titles</TabsTrigger>
           <TabsTrigger value="proposals">Proposals{proposals.data?.length ? ` (${proposals.data.length})` : ""}</TabsTrigger>
           <TabsTrigger value="grouping">Grouping review{conflicts.data?.length ? ` (${conflicts.data.length})` : ""}</TabsTrigger>
+          <TabsTrigger value="cpe">CPE matches{cpes.data?.length ? ` (${new Set(cpes.data.map((c) => c.product_id)).size})` : ""}</TabsTrigger>
         </TabsList>
         <TabsContent value="requests">
           <RequestsPanel groups={requests.data ?? []} error={requests.error} onDecided={refresh} />
@@ -67,6 +71,9 @@ export function InboxPage() {
         </TabsContent>
         <TabsContent value="grouping">
           <GroupingReview conflicts={conflicts.data ?? []} error={conflicts.error} onResolved={refresh} />
+        </TabsContent>
+        <TabsContent value="cpe">
+          <CpeMatches candidates={cpes.data ?? []} error={cpes.error} onDecided={refresh} />
         </TabsContent>
       </Tabs>
     </>

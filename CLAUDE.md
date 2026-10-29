@@ -53,6 +53,14 @@ The single source of truth for software titles (programs, browser and IDE extens
 - Spellings published with different categories before grouping show in Inbox › Grouping review (`v_product_conflicts`, `resolve_product_conflict`). Operators move or split a spelling on the entry page (`set_entry_product`; the entry is then locked). Admins add vendor spellings the rules miss (`set_vendor_alias`, regroups at once).
 - `dictionary-changes` adds `product_id` and `product_key` to each entry (additive).
 
+## Known vulnerabilities (phase H7)
+
+- Sources (all free, public data): NVD CVE API 2.0 by CPE (`virtualMatchString=cpe:2.3:a:vendor:product`, incremental by last-modified date, 120-day window) and the NVD CPE dictionary (`keywordSearch`) for programs; OSV.dev `/v1/query` for npm and PyPI packages (deb, rpm, Chocolatey and Homebrew are not covered yet); CISA KEV (daily); FIRST EPSS (daily, 100 CVEs per call). The optional NVD API key is in Vault (`provider_keys` provider `nvd`, Settings › Data sources): without it NVD calls are spaced 6.5 s, with it 0.7 s.
+- `product_cpes`: an exact CPE (product name equal, vendor equal to the vendor key or to the product) is confirmed automatically; other candidates wait in Inbox › CPE matches (`decide_cpe`, `add_cpe`; operators and admins). A rejected CPE takes its CVEs away.
+- `vulnerabilities` (CVE id, or the OSV id without a CVE; NVD's CVSS wins over OSV) and `vulnerability_ranges` per product and CPE (start/end with inclusive flags, or an exact version). Only CVEs with a range for the product are stored. Every change of a (product, CVE) pair is a `vulnerability_events` row; EPSS moves of less than 0.05 are not.
+- Edge Function `vuln-sync` (`_shared/vuln-sources.ts` parsers, `_shared/vuln-sync.ts` runner): pg_cron `vuln-sync` at :17 (`invoke_vuln_sync`, the Jev cron secrets), or the Refresh button on the entry page (one product, full read). Order: CVEs of due CPEs, CPE search, OSV, KEV, EPSS; stops before 140 s; logged in `vuln_sync_runs`.
+- Client API `GET vulnerability-changes?since=<seq>` (client key): per (product, CVE) pair the product key, severity, KEV, EPSS and ranges, or `removed`. Clients compare their own installed versions; nothing about computers reaches the Hub.
+
 ## Jev and the auto-publish gate
 
 - Modes: off, manual, automatic. Defaults: automatic, 50 titles per run, a run at most every 6 hours, only titles reported by 2+ clients, 200 titles per day, 3 credits per month, 100 auto-publishes per day, alert at 80%.

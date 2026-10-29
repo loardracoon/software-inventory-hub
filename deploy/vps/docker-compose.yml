@@ -86,7 +86,7 @@ services:
     environment:
       <<: *jwt
       SUPABASE_URL: http://kong:8000
-      NO_VERIFY_JWT: dictionary-changes,titles-submit,reclassification-requests,jev,digest,research
+      NO_VERIFY_JWT: dictionary-changes,titles-submit,reclassification-requests,jev,digest,research,vuln-sync,vulnerability-changes
       SUPABASE_ANON_KEY: ${ANON_KEY}
       SUPABASE_SERVICE_ROLE_KEY: ${SERVICE_ROLE_KEY}
       SUPABASE_DB_URL: postgres://postgres:${POSTGRES_PASSWORD}@db:5432/postgres

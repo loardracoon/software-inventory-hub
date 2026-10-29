@@ -440,3 +440,10 @@ verify_jwt = false
 # Research engine: admin JWT or x-cron-secret, checked by the function.
 [functions.research]
 verify_jwt = false
+
+# vuln-sync checks x-cron-secret or a curator JWT itself; vulnerability-changes takes a client key.
+[functions.vuln-sync]
+verify_jwt = false
+
+[functions.vulnerability-changes]
+verify_jwt = false
