@@ -1,5 +1,8 @@
 # Dictionary Hub on the VPS (next to Mailu)
 
+> This folder is the reference production host, next to an existing Mailu mail server. For a new install on one
+> host, use `deploy/compose` (one command; [README › Install](../../README.md#install)).
+
 `https://mail.sophizo.com.br:18443` — Docker Compose project `dictionary-hub` in `/opt/dictionary-hub`, beside the Mailu project in `/mailu`.
 
 | Service | What it is |
@@ -50,6 +53,31 @@ Raise the gateway rates when many users share one public address (one office beh
 Check the client address after a change: the gateway access log (`docker compose logs kong`) must show the real public addresses, not one internal address for everyone. On the VPS the tls container adds the address; nothing else is needed. A blocked request gets HTTP 429 and a line `limiting requests` in that log.
 
 Limits that were already in place: Sophos API budget per tenant (10 runs per minute, 1,000 per day, Scans › API budget), Hub sync back-off (5 minutes up to 6 hours), retries of 429 and 5xx with back-off in `_shared/http.ts`, NVD calls paced to its limit (5 per 30 s without a key, 50 with one), Jev and Research daily budgets (Engines & usage).
+
+## Keep the Vault key
+
+The database's Vault (Sophos credential or AI keys, Hub key, job secrets) is encrypted with `pgsodium_root.key`, which
+the Postgres image creates at first use in `/etc/postgresql-custom`, **inside the container, outside the data volume**.
+A new database container (an image upgrade, a recreated container) creates a new key, and every Vault secret can no
+longer be read ("invalid ciphertext"). The one-host install keeps the key in the `db-config` volume; the layouts
+below need this once.
+
+1. Save the key of the running database (a secret: keep it with `.env`, never in git):
+
+   ```bash
+   cd /opt/dictionary-hub
+   docker compose exec -T db sh -c 'cat /etc/postgresql-custom/pgsodium_root.key' > pgsodium_root.key
+   chown "$(docker compose exec -T db id -u postgres | tr -d '\r')" pgsodium_root.key && chmod 600 pgsodium_root.key
+   ```
+
+2. In `docker-compose.yml`, turn on the commented line under `db` › `volumes`
+   (`./pgsodium_root.key:/etc/postgresql-custom/pgsodium_root.key:ro`) and recreate the database:
+   `docker compose up -d db`.
+3. Check: `docker compose exec -T db psql -U supabase_admin -h localhost -d postgres -tAc "select count(*), count(decrypted_secret) from vault.decrypted_secrets"`
+   shows the same number twice.
+
+Step 1 alone already protects you: with the saved key, a lost container can be repaired. Never turn on step 2 before
+the file exists (Docker would create a folder with that name and the database would not start).
 
 ## Jobs
 

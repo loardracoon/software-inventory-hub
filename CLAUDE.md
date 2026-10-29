@@ -36,6 +36,7 @@ The single source of truth for software titles (programs, browser and IDE extens
 - Mailpit (magic links): http://127.0.0.1:56324. Studio: http://127.0.0.1:56323.
 
 ## Rules that must not break
+- Three production layouts run the same images: `deploy/k3s/app/stack.yaml`, `deploy/vps/docker-compose.yml` (the reference host next to Mailu) and the one-host `deploy/compose/docker-compose.yml` (README › Install; generated in the same shape as the client's `deploy/compose`). A change to a service's image, environment or secrets goes into all three; `install.sh` must stay safe to run again (never replace a secret in `.env`); the database's Vault key must survive a new db container (`db-config` volume; README of each layout › Keep the Vault key). CI checks the Compose file and the scripts.
 
 - Rate limits live in one file per deployment: deploy/vps/rate-limits.env for the VPS and deploy/k3s/app/rate-limits.env for K3S (deploy/vps/README.md › Rate limits and abuse protection). The gateway is a template (`deploy/k3s/nginx.conf.template`, defaults in `web.Dockerfile` as `RL_*`): add a new limit there and in every rate-limits.env. GoTrue's per-address limits need `GOTRUE_RATE_LIMIT_HEADER=X-Real-IP` (the gateway sets it); calls between services have no X-Forwarded-For and are not limited, so never add one to internal calls.
 - Code, comments and UI copy in English.

@@ -1,0 +1,6 @@
+.env
+.env.bak
+mail.htpasswd
+backups/
+docker-compose.override.yml
+pgsodium_root.key

@@ -22,7 +22,10 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       PGPASSWORD: ${POSTGRES_PASSWORD}
       JWT_EXP: "3600"
-    volumes: [db-data:/var/lib/postgresql/data]
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      # The Vault key: turn on only after step 1 of README › Keep the Vault key (the file must exist first).
+      # - ./pgsodium_root.key:/etc/postgresql-custom/pgsodium_root.key:ro
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres", "-h", "localhost"]
       interval: 5s
