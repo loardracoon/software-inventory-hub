@@ -228,6 +228,21 @@ describe("OSV", () => {
     expect(JSON.parse(String(f.mock.calls[0][1]?.body))).toEqual({ package: { ecosystem: "npm", name: "lodash" } });
   });
 
+  it("computes the CVSS v3 score from OSV's vector and takes the severity from it", async () => {
+    const vuln = {
+      id: "GHSA-x",
+      aliases: ["CVE-2026-1"],
+      severity: [{ type: "CVSS_V4", score: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:N/SI:N/SA:N" }, { type: "CVSS_V3", score: "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H" }],
+      database_specific: { severity: "MODERATE" },
+      affected: [{ package: { ecosystem: "npm", name: "x" }, ranges: [{ type: "SEMVER", events: [{ introduced: "0" }, { fixed: "1.0.0" }] }] }],
+    };
+    const { vulns } = await fetchOsvVulns(fakeFetch({ vulns: [vuln] }), "npm", "x");
+    expect(vulns[0]).toMatchObject({ cvss_version: "3.1", cvss_score: 9.8, severity: "CRITICAL" });
+    // Only a v4 vector: no score here, OSV's own severity stays.
+    const { vulns: v4 } = await fetchOsvVulns(fakeFetch({ vulns: [{ ...vuln, severity: [vuln.severity[0]] }] }), "npm", "x");
+    expect(v4[0]).toMatchObject({ cvss_version: "4.0", cvss_score: null, severity: "MEDIUM" });
+  });
+
   it("turns events into ranges: several introduced/fixed pairs, last_affected, open end, explicit versions", () => {
     const v = {
       affected: [

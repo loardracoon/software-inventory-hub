@@ -8,7 +8,7 @@ truncate public.clients, public.classification_runs, public.audit_log, public.hu
 delete from public.entries;
 delete from public.products;
 
-select plan(43);
+select plan(45);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-00000000000a', 'admin@example.com'),
@@ -136,6 +136,14 @@ select lives_ok($$select public.decide_cpe((select id from public.v_cpe_candidat
 select lives_ok($$select public.decide_cpe((select id from public.product_cpes where cpe_product = '7-zip_extra'), false)$$, 'and a confirmed CPE');
 reset role;
 select is((select count(*)::int from public.vulnerability_ranges where vuln_id = 'CVE-2030-1'), 0, 'rejecting a CPE removes the CVEs it brought');
+
+-- OSV scores (computed from the vector) never replace NVD's.
+select set_config('t.nvd_score', (select cvss_score::text from public.vulnerabilities where vuln_id = 'CVE-2025-0411'), true);
+select public.vuln_store(pg_temp.product('7-Zip'), 'osv', '[{"vuln_id": "CVE-2025-0411", "cvss_version": "3.1", "cvss_score": 1.0, "severity": "LOW", "ranges": [{"version_end": "24.09"}]}]', false, null);
+select is((select cvss_score::text || ' ' || severity from public.vulnerabilities where vuln_id = 'CVE-2025-0411'), current_setting('t.nvd_score') || ' HIGH',
+  'an OSV score does not replace the NVD score of the same CVE');
+select public.vuln_store(pg_temp.product('lodash'), 'osv', '[{"vuln_id": "CVE-2021-23337", "cvss_version": "3.1", "cvss_score": 7.2, "severity": "HIGH", "ranges": [{"version_end": "4.17.21"}]}]', true, null);
+select is((select cvss_score from public.vulnerabilities where vuln_id = 'CVE-2021-23337'), 7.2, 'a CVE that OSV stored first gets the OSV score');
 
 select * from finish();
 rollback;

@@ -2,6 +2,8 @@
 // and FIRST EPSS. Runtime-neutral: fetch is injected, so Vitest drives the parsers with recorded answers.
 // Everything here is public data; the only secret is the optional NVD API key (header apiKey).
 
+import { cvss3BaseScore, cvssSeverity } from "./cvss.ts";
+
 export type FetchLike = (url: string, init?: RequestInit) => Promise<Response>;
 
 export const NVD_CVES = "https://services.nvd.nist.gov/rest/json/cves/2.0";
@@ -395,7 +397,9 @@ export function parseOsvVuln(v: OsvVuln, ecosystem: string, name: string): Vulne
   if (!v.id || v.withdrawn) return null;
   const cve = (v.aliases ?? []).find((a) => /^CVE-\d{4}-\d+$/.test(a));
   const level = v.database_specific?.severity?.toUpperCase();
-  const vector = v.severity?.find((s) => s.type?.startsWith("CVSS_"))?.score ?? null;
+  // A v3 vector first (its base score is computed here; OSV gives no score), else any CVSS vector.
+  const vector = v.severity?.find((s) => s.type === "CVSS_V3")?.score ?? v.severity?.find((s) => s.type?.startsWith("CVSS_"))?.score ?? null;
+  const score = cvss3BaseScore(vector);
   return {
     vuln_id: cve ?? v.id,
     aliases: [v.id, ...(v.aliases ?? [])].filter((a) => a !== (cve ?? v.id)),
@@ -404,8 +408,8 @@ export function parseOsvVuln(v: OsvVuln, ecosystem: string, name: string): Vulne
     modified: v.modified ?? null,
     summary: (v.summary ?? v.details ?? "").slice(0, 2000) || null,
     cvss_version: vector?.match(/^CVSS:(\d\.\d)/)?.[1] ?? null,
-    cvss_score: null,
-    severity: level && SEVERITY.has(level) ? (level === "MODERATE" ? "MEDIUM" : level) : null,
+    cvss_score: score,
+    severity: cvssSeverity(score) ?? (level && SEVERITY.has(level) ? (level === "MODERATE" ? "MEDIUM" : level) : null),
     cvss_vector: vector,
     cwe: (v.database_specific?.cwe_ids ?? []).filter((c) => /^CWE-\d+$/.test(c)),
     references: (v.references ?? []).map((r) => r.url ?? "").filter((u) => /^https?:\/\//.test(u)).slice(0, 10),
