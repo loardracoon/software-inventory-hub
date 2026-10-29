@@ -160,7 +160,7 @@ spec:
     spec:
       containers:
         - name: edge-runtime
-          image: ghcr.io/loardracoon/software-inventory-hub-functions:d228b40cb8b65eee70e3f21dc85ea2d1455efe9b
+          image: ghcr.io/loardracoon/software-inventory-hub-functions:5aed8be8ebf3a96fe23b5ed1eaa81a8443af3696
           imagePullPolicy: IfNotPresent
           env:
             - { name: SUPABASE_URL, value: "http://kong:8000" }
@@ -222,7 +222,7 @@ spec:
     spec:
       containers:
         - name: nginx
-          image: ghcr.io/loardracoon/software-inventory-hub-web:d228b40cb8b65eee70e3f21dc85ea2d1455efe9b
+          image: ghcr.io/loardracoon/software-inventory-hub-web:5aed8be8ebf3a96fe23b5ed1eaa81a8443af3696
           imagePullPolicy: IfNotPresent
           envFrom: [{ configMapRef: { name: rate-limits } }]
           env:
