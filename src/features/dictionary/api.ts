@@ -9,7 +9,8 @@ export type EntryRow = Fn["search_entries"]["Returns"][number];
 export type EntryStatus = Database["public"]["Enums"]["entry_status"];
 export type EntryKind = Database["public"]["Enums"]["entry_kind"];
 export type Attention = Database["public"]["Enums"]["attention_level"];
-export type DictionaryFilters = { query: string; status: EntryStatus | ""; kind: EntryKind | ""; categoryId: string };
+// group: one row per product (its most reported spelling) instead of one row per spelling.
+export type DictionaryFilters = { query: string; status: EntryStatus | ""; kind: EntryKind | ""; categoryId: string; group: boolean };
 
 export async function searchEntries(r: ServerPageRequest<DictionaryFilters>): Promise<ServerPage<EntryRow>> {
   const sort = r.sorting[0]?.id === "canonical_name" ? "name" : r.sorting[0]?.id === "updated" ? "updated" : "reports";
@@ -23,6 +24,7 @@ export async function searchEntries(r: ServerPageRequest<DictionaryFilters>): Pr
         p_sort: sort,
         p_limit: r.pageSize,
         p_offset: r.pageIndex * r.pageSize,
+        p_group: r.filters.group,
       })
       .abortSignal(r.signal),
   ) ?? [];
@@ -157,4 +159,44 @@ export function level2Options(rows: CategoryRow[]): { value: string; label: stri
     .filter((r) => r.parent_id && !r.deprecated)
     .map((r) => ({ value: r.id, label: `${byId.get(r.parent_id!)?.name ?? ""} / ${r.name}` }))
     .sort((a, b) => a.label.localeCompare(b.label));
+}
+
+// Products (phase H6) ----------------------------------------------------------------------------------
+
+export type ProductAlias = { id: string; canonical_name: string; source: string; match_key: string; status: EntryStatus; product_locked: boolean; category: { name: string } | null };
+export type ProductInfo = Database["public"]["Views"]["v_products"]["Row"];
+export type ProductConflict = {
+  product_id: string;
+  display_name: string;
+  vendor: string | null;
+  aliases: { entry_id: string; canonical_name: string; category_id: string | null; category: string | null; method: string | null; reviewed_at: string | null }[];
+};
+
+// The product of an entry and every spelling in it.
+export async function fetchProduct(productId: string): Promise<{ product: ProductInfo | null; aliases: ProductAlias[] }> {
+  const [product, aliases] = await Promise.all([
+    db().from("v_products").select("*").eq("id", productId).maybeSingle(),
+    db().from("entries").select("id, canonical_name, source, match_key, status, product_locked, category:category_id(name)").eq("product_id", productId).order("canonical_name"),
+  ]);
+  return { product: orThrow(product) as ProductInfo | null, aliases: (orThrow(aliases) ?? []) as unknown as ProductAlias[] };
+}
+
+export async function searchProducts(query: string, kind: EntryKind): Promise<ProductInfo[]> {
+  const q = query.replace(/[%_,()*\\]/g, " ").trim();
+  if (!q) return [];
+  return (orThrow(await db().from("v_products").select("*").eq("kind", kind).ilike("display_name", `%${q}%`).order("display_name").limit(20)) ?? []) as ProductInfo[];
+}
+
+// Move an entry to another product, or split it into a product of its own (null).
+export async function setEntryProduct(entryId: string, productId: string | null): Promise<void> {
+  orThrow(await db().rpc("set_entry_product", { p_entry_id: entryId, p_product_id: productId as string }));
+}
+
+export async function fetchProductConflicts(): Promise<ProductConflict[]> {
+  return (orThrow(await db().from("v_product_conflicts").select("*").order("display_name")) ?? []) as unknown as ProductConflict[];
+}
+
+// Publish this spelling's classification to every spelling of its product.
+export async function resolveProductConflict(entryId: string): Promise<number> {
+  return orThrow(await db().rpc("resolve_product_conflict", { p_entry_id: entryId })) as number;
 }

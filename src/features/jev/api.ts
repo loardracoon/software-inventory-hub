@@ -11,6 +11,9 @@ export type PendingTitle = {
   status: string;
   reports_count: number;
   first_reported_at: string | null;
+  product_id: string | null;
+  // Pending spellings of the same product (one row per product; Jev classifies one, the others follow).
+  spellings: number;
 };
 export type Proposal = {
   run_id: string;
@@ -61,15 +64,21 @@ export type Level2 = { id: string; slug: string; name: string; parent: { name: s
 export type RunResult = { ok: boolean; error?: string; skipped?: string; titles?: number; auto_published?: number; proposals?: number; errors?: number; paused?: boolean; pause_reason?: string | null };
 
 export async function fetchPendingTitles(): Promise<PendingTitle[]> {
-  return (orThrow(
+  return Array.from((orThrow(
     await db()
       .from("entries")
-      .select("id, kind, source, canonical_name, vendor, status, reports_count, first_reported_at")
+      .select("id, kind, source, canonical_name, vendor, status, reports_count, first_reported_at, product_id")
       .eq("status", "pending")
       .order("reports_count", { ascending: false })
       .order("first_reported_at")
       .limit(500),
-  ) ?? []) as PendingTitle[];
+  ) ?? []).reduce((byProduct: Map<string, PendingTitle>, row) => {
+    const key = row.product_id ?? row.id;
+    const seen = byProduct.get(key);
+    if (seen) seen.spellings += 1;
+    else byProduct.set(key, { ...(row as Omit<PendingTitle, "spellings">), spellings: 1 });
+    return byProduct;
+  }, new Map<string, PendingTitle>()).values());
 }
 
 export async function fetchProposals(): Promise<Proposal[]> {

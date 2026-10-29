@@ -34,6 +34,8 @@ import {
 import { useHubRole } from "@/features/auth/auth-context";
 import { formatDate, formatNumber } from "@/lib/format";
 import { useLoad } from "@/lib/use-load";
+import { GroupingReview } from "@/features/dictionary/grouping-review";
+import { fetchProductConflicts } from "@/features/dictionary/api";
 
 const MAX_RUN = 50;
 const KIND: Record<string, string> = { program: "Program", extension: "Browser extension", ide_extension: "IDE extension", package: "Package" };
@@ -43,6 +45,7 @@ export function InboxPage() {
   const refresh = () => setVersion((v) => v + 1);
   const proposals = useLoad(`proposals:${version}`, fetchProposals);
   const requests = useLoad(`requests:${version}`, fetchRequestGroups);
+  const conflicts = useLoad(`conflicts:${version}`, fetchProductConflicts);
   return (
     <>
       <PageHeader eyebrow="Review" title="Inbox" description="Reclassification requests from clients, new titles and the categories Jev proposes." />
@@ -51,6 +54,7 @@ export function InboxPage() {
           <TabsTrigger value="requests">Requests{requests.data?.length ? ` (${requests.data.length})` : ""}</TabsTrigger>
           <TabsTrigger value="new">New titles</TabsTrigger>
           <TabsTrigger value="proposals">Proposals{proposals.data?.length ? ` (${proposals.data.length})` : ""}</TabsTrigger>
+          <TabsTrigger value="grouping">Grouping review{conflicts.data?.length ? ` (${conflicts.data.length})` : ""}</TabsTrigger>
         </TabsList>
         <TabsContent value="requests">
           <RequestsPanel groups={requests.data ?? []} error={requests.error} onDecided={refresh} />
@@ -60,6 +64,9 @@ export function InboxPage() {
         </TabsContent>
         <TabsContent value="proposals">
           <Proposals proposals={proposals.data ?? []} error={proposals.error} onDecided={refresh} />
+        </TabsContent>
+        <TabsContent value="grouping">
+          <GroupingReview conflicts={conflicts.data ?? []} error={conflicts.error} onResolved={refresh} />
         </TabsContent>
       </Tabs>
     </>
@@ -142,6 +149,7 @@ function NewTitles({ version, onRun }: { version: number; onRun: () => void }) {
                   <div className="flex flex-col gap-0.5">
                     <span className="font-semibold text-text-strong">{t.canonical_name}</span>
                     {t.vendor ? <span className="text-xs text-text-muted">{t.vendor}</span> : null}
+                    {t.spellings > 1 ? <span className="text-xs text-text-muted">and {t.spellings - 1} other spelling(s) of the same product</span> : null}
                   </div>
                 </TableCell>
                 <TableCell>{`${KIND[t.kind] ?? t.kind} · ${t.source}`}</TableCell>

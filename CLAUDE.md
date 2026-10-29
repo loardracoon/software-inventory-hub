@@ -46,6 +46,13 @@ The single source of truth for software titles (programs, browser and IDE extens
 - Client keys are stored as sha256 hashes, shown once, rate limited (60 calls per minute) and revocable.
 - Never return client data to another client: `GET reclassification-requests` only returns the caller's own requests.
 
+## Products (phase H6)
+
+- Entries that differ only by version, architecture or vendor spelling belong to one product (`products`, `entries.product_id`). The key is computed in SQL: `product_name()` ("7-Zip 23.01 (x64)" → "7-Zip", "WindowsAppRuntime.1.8" → "WindowsAppRuntime"; years, "Java 8 Update 401" and "python3.12" stay), `vendor_key()` (lower case, no punctuation or legal suffix), `product_key_for()` = kind | vendor key (after `vendor_aliases`) | lower product name. The client uses the same functions and test vectors; change both together.
+- Classification belongs to the product: `publish_entry` copies every publish to the other spellings (same category, attention, method and confidence, so older clients accept it; the revision says "Same product as …"; `hub.propagating` stops the loop), and `submit_titles` publishes a new spelling of a published product at once. Jev classifies one spelling per product.
+- Spellings published with different categories before grouping show in Inbox › Grouping review (`v_product_conflicts`, `resolve_product_conflict`). Operators move or split a spelling on the entry page (`set_entry_product`; the entry is then locked). Admins add vendor spellings the rules miss (`set_vendor_alias`, regroups at once).
+- `dictionary-changes` adds `product_id` and `product_key` to each entry (additive).
+
 ## Jev and the auto-publish gate
 
 - Modes: off, manual, automatic. Defaults: automatic, 50 titles per run, a run at most every 6 hours, only titles reported by 2+ clients, 200 titles per day, 3 credits per month, 100 auto-publishes per day, alert at 80%.

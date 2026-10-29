@@ -15,7 +15,7 @@ const MAX_TITLES = 50;
 const CONCURRENCY = 5;
 
 type Body = { action?: string; entry_ids?: string[]; category_slug?: string };
-type EntryRow = TitleInput & { id: string };
+type EntryRow = TitleInput & { id: string; product_id: string | null };
 
 const ENV_KEY: Record<string, string> = { claude: "ANTHROPIC_API_KEY", openai: "OPENAI_API_KEY" };
 
@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
 
   // Pick the titles.
   let entries: EntryRow[] = [];
-  const cols = "id, kind, source, canonical_name, vendor, description";
+  const cols = "id, kind, source, canonical_name, vendor, description, product_id";
   if (action === "auto") {
     if (!fromCron && !admin) return json({ error: "Forbidden" }, 403);
     const last = settings.last_auto_run_at ? Date.parse(settings.last_auto_run_at) : 0;
@@ -74,6 +74,15 @@ Deno.serve(async (req) => {
     entries = (data ?? []) as EntryRow[];
   } else {
     return json({ error: "Unknown action" }, 400);
+  }
+  // One call per product: publishing one spelling publishes the others (publish_entry). The automatic run
+  // also skips products that already wait for a decision on another spelling.
+  const seen = new Set<string>();
+  entries = entries.filter((e) => !e.product_id || (!seen.has(e.product_id) && seen.add(e.product_id) !== null));
+  if (action === "auto" && seen.size > 0) {
+    const { data: waiting } = await db.from("entries").select("product_id").eq("status", "proposed").in("product_id", [...seen]);
+    const busy = new Set((waiting ?? []).map((w) => w.product_id as string));
+    entries = entries.filter((e) => !e.product_id || !busy.has(e.product_id));
   }
   if (entries.length === 0) return json({ ok: true, skipped: "No titles to classify" });
 

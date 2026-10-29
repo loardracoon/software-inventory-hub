@@ -275,14 +275,14 @@ isOneToOne: false
                   ]
                 },"entries": {
                   Row: {
-                    "attention_override": Database["public"]['Enums']["attention_level"] | null,"canonical_name": string,"category_id": string | null,"confidence": number | null,"created_at": string,"description": string | null,"first_reported_at": string | null,"id": string,"kind": Database["public"]['Enums']["entry_kind"],"last_reported_at": string | null,"match_key": string,"method": Database["public"]['Enums']["entry_method"] | null,"model_version": string | null,"reports_count": number,"reviewed_at": string | null,"reviewed_by": string | null,"revision": number,"seq": number,"source": string,"status": Database["public"]['Enums']["entry_status"],"updated_at": string,"vendor": string | null
+                    "attention_override": Database["public"]['Enums']["attention_level"] | null,"canonical_name": string,"category_id": string | null,"confidence": number | null,"created_at": string,"description": string | null,"first_reported_at": string | null,"id": string,"kind": Database["public"]['Enums']["entry_kind"],"last_reported_at": string | null,"match_key": string,"method": Database["public"]['Enums']["entry_method"] | null,"model_version": string | null,"product_id": string | null,"product_locked": boolean,"reports_count": number,"reviewed_at": string | null,"reviewed_by": string | null,"revision": number,"seq": number,"source": string,"status": Database["public"]['Enums']["entry_status"],"updated_at": string,"vendor": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "attention_override"?: Database["public"]['Enums']["attention_level"] | null,"canonical_name": string,"category_id"?: string | null,"confidence"?: number | null,"created_at"?: string,"description"?: string | null,"first_reported_at"?: string | null,"id"?: string,"kind": Database["public"]['Enums']["entry_kind"],"last_reported_at"?: string | null,"match_key": string,"method"?: Database["public"]['Enums']["entry_method"] | null,"model_version"?: string | null,"reports_count"?: number,"reviewed_at"?: string | null,"reviewed_by"?: string | null,"revision"?: number,"seq"?: number,"source": string,"status"?: Database["public"]['Enums']["entry_status"],"updated_at"?: string,"vendor"?: string | null
+                    "attention_override"?: Database["public"]['Enums']["attention_level"] | null,"canonical_name": string,"category_id"?: string | null,"confidence"?: number | null,"created_at"?: string,"description"?: string | null,"first_reported_at"?: string | null,"id"?: string,"kind": Database["public"]['Enums']["entry_kind"],"last_reported_at"?: string | null,"match_key": string,"method"?: Database["public"]['Enums']["entry_method"] | null,"model_version"?: string | null,"product_id"?: string | null,"product_locked"?: boolean,"reports_count"?: number,"reviewed_at"?: string | null,"reviewed_by"?: string | null,"revision"?: number,"seq"?: number,"source": string,"status"?: Database["public"]['Enums']["entry_status"],"updated_at"?: string,"vendor"?: string | null
                   }
                   Update: {
-                    "attention_override"?: Database["public"]['Enums']["attention_level"] | null,"canonical_name"?: string,"category_id"?: string | null,"confidence"?: number | null,"created_at"?: string,"description"?: string | null,"first_reported_at"?: string | null,"id"?: string,"kind"?: Database["public"]['Enums']["entry_kind"],"last_reported_at"?: string | null,"match_key"?: string,"method"?: Database["public"]['Enums']["entry_method"] | null,"model_version"?: string | null,"reports_count"?: number,"reviewed_at"?: string | null,"reviewed_by"?: string | null,"revision"?: number,"seq"?: number,"source"?: string,"status"?: Database["public"]['Enums']["entry_status"],"updated_at"?: string,"vendor"?: string | null
+                    "attention_override"?: Database["public"]['Enums']["attention_level"] | null,"canonical_name"?: string,"category_id"?: string | null,"confidence"?: number | null,"created_at"?: string,"description"?: string | null,"first_reported_at"?: string | null,"id"?: string,"kind"?: Database["public"]['Enums']["entry_kind"],"last_reported_at"?: string | null,"match_key"?: string,"method"?: Database["public"]['Enums']["entry_method"] | null,"model_version"?: string | null,"product_id"?: string | null,"product_locked"?: boolean,"reports_count"?: number,"reviewed_at"?: string | null,"reviewed_by"?: string | null,"revision"?: number,"seq"?: number,"source"?: string,"status"?: Database["public"]['Enums']["entry_status"],"updated_at"?: string,"vendor"?: string | null
                   }
                   Relationships: [
                     {
@@ -297,6 +297,24 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "v_request_groups"
       referencedColumns: ["current_category_id"]
+    },{
+      foreignKeyName: "entries_product_id_fkey"
+      columns: ["product_id"]
+isOneToOne: false
+      referencedRelation: "products"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "entries_product_id_fkey"
+      columns: ["product_id"]
+isOneToOne: false
+      referencedRelation: "v_product_conflicts"
+      referencedColumns: ["product_id"]
+    },{
+      foreignKeyName: "entries_product_id_fkey"
+      columns: ["product_id"]
+isOneToOne: false
+      referencedRelation: "v_products"
+      referencedColumns: ["id"]
     }
                   ]
                 },"entry_drafts": {
@@ -387,6 +405,20 @@ isOneToOne: false
                   }
                   Update: {
                     "created_at"?: string,"id"?: never,"read_at"?: string | null,"ref_id"?: string | null,"title"?: string,"type"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"products": {
+                  Row: {
+                    "created_at": string,"display_name": string,"id": string,"kind": Database["public"]['Enums']["entry_kind"],"product_key": string,"vendor": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"display_name": string,"id"?: string,"kind": Database["public"]['Enums']["entry_kind"],"product_key": string,"vendor"?: string | null
+                  }
+                  Update: {
+                    "created_at"?: string,"display_name"?: string,"id"?: string,"kind"?: Database["public"]['Enums']["entry_kind"],"product_key"?: string,"vendor"?: string | null
                   }
                   Relationships: [
                     
@@ -545,6 +577,20 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"vendor_aliases": {
+                  Row: {
+                    "alias_key": string,"created_at": string,"created_by": string | null,"vendor_key": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "alias_key": string,"created_at"?: string,"created_by"?: string | null,"vendor_key": string
+                  }
+                  Update: {
+                    "alias_key"?: string,"created_at"?: string,"created_by"?: string | null,"vendor_key"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 }
           }
           Views: {
@@ -574,6 +620,22 @@ isOneToOne: false
                            "engine"?: string | null,"model"?: string | null,"provider"?: string | null
                          }
                         Relationships: [
+                    
+                  ]
+                },"v_product_conflicts": {
+                  Row: {
+                    "aliases": Json | null,"display_name": string,"product_id": string,"vendor": string | null
+                  }
+                  ComputedFields: never
+                  Relationships: [
+                    
+                  ]
+                },"v_products": {
+                  Row: {
+                    "aliases": number | null,"conflict": boolean | null,"display_name": string,"id": string,"kind": Database["public"]['Enums']["entry_kind"],"lead_entry_id": string | null,"pending": number | null,"product_key": string,"published": number | null,"reports": number | null,"vendor": string | null
+                  }
+                  ComputedFields: never
+                  Relationships: [
                     
                   ]
                 },"v_proposals": {
@@ -700,6 +762,9 @@ isOneToOne: false
 "delete_access_rule":
 { Args: { "p_id": string }; Returns: undefined
                            },
+"delete_vendor_alias":
+{ Args: { "p_alias": string }; Returns: number
+                           },
 "deprecate_category":
 { Args: { "p_category_id": string,"p_reason": string,"p_replacement_id": string }; Returns: number
                            },
@@ -781,14 +846,35 @@ isOneToOne: false
 "pause_engine":
 { Args: { "p_engine": string,"p_reason": string }; Returns: undefined
                            },
+"product_for":
+{ Args: { "p_kind": Database["public"]['Enums']["entry_kind"],"p_name": string,"p_vendor": string }; Returns: string
+                           },
+"product_key_for":
+{ Args: { "p_kind": string,"p_name": string,"p_vendor": string }; Returns: string
+                           },
+"product_name":
+{ Args: { "p_name": string }; Returns: string
+                           },
+"product_natural_key":
+{ Args: { "p_kind": string,"p_name": string,"p_vendor": string }; Returns: string
+                           },
+"propagate_product":
+{ Args: { "p_actor": string,"p_entry_id": string }; Returns: number
+                           },
 "publish_entry":
 { Args: { "p_actor": string,"p_category_id": string,"p_confidence": number,"p_entry_id": string,"p_method": Database["public"]['Enums']["entry_method"],"p_model_version": string,"p_reason": string,"p_status"?: Database["public"]['Enums']["entry_status"] }; Returns: number
                            },
 "publish_entry_edit":
 { Args: { "p_entry_id": string,"p_reason"?: string }; Returns: number
                            },
+"publish_like_product":
+{ Args: { "p_entry_id": string }; Returns: boolean
+                           },
 "record_ai_call":
 { Args: { "p_cache_read": number,"p_cache_write": number,"p_engine": string,"p_entry_ids"?: (string)[],"p_error"?: string,"p_http_status"?: number,"p_input": number,"p_latency_ms": number,"p_model": string,"p_output": number,"p_provider"?: string,"p_purpose": string,"p_run_id": string,"p_searches"?: number,"p_status": string,"p_titles": number }; Returns: Json
+                           },
+"regroup_products":
+{ Args: Record<PropertyKey, never>; Returns: number
                            },
 "remove_user":
 { Args: { "p_user_id": string }; Returns: undefined
@@ -803,6 +889,9 @@ isOneToOne: false
 { Args: { "p_limit": number }; Returns: {
               "entry_id": string,"queue_id": number,"trigger": string
             }[]
+                           },
+"resolve_product_conflict":
+{ Args: { "p_entry_id": string }; Returns: number
                            },
 "resume_engine":
 { Args: { "p_engine": string }; Returns: undefined
@@ -820,8 +909,8 @@ isOneToOne: false
 { Args: { "p_attention": Database["public"]['Enums']["attention_level"],"p_category_id": string,"p_clear_attention": boolean,"p_description": string,"p_entry_id": string,"p_name": string,"p_reason": string,"p_vendor": string }; Returns: undefined
                            },
 "search_entries":
-{ Args: { "p_category_id"?: string,"p_kind"?: Database["public"]['Enums']["entry_kind"],"p_limit"?: number,"p_offset"?: number,"p_query"?: string,"p_sort"?: string,"p_status"?: Database["public"]['Enums']["entry_status"] }; Returns: {
-              "attention_level": Database["public"]['Enums']["attention_level"],"canonical_name": string,"category_id": string,"category_name": string,"confidence": number,"has_draft": boolean,"id": string,"kind": Database["public"]['Enums']["entry_kind"],"level1_name": string,"match_key": string,"method": Database["public"]['Enums']["entry_method"],"open_requests": number,"reports_count": number,"revision": number,"source": string,"status": Database["public"]['Enums']["entry_status"],"total_count": number,"vendor": string
+{ Args: { "p_category_id"?: string,"p_group"?: boolean,"p_kind"?: Database["public"]['Enums']["entry_kind"],"p_limit"?: number,"p_offset"?: number,"p_query"?: string,"p_sort"?: string,"p_status"?: Database["public"]['Enums']["entry_status"] }; Returns: {
+              "aliases": number,"attention_level": Database["public"]['Enums']["attention_level"],"canonical_name": string,"category_id": string,"category_name": string,"confidence": number,"has_draft": boolean,"id": string,"kind": Database["public"]['Enums']["entry_kind"],"level1_name": string,"match_key": string,"method": Database["public"]['Enums']["entry_method"],"open_requests": number,"product_id": string,"product_name": string,"reports_count": number,"revision": number,"source": string,"status": Database["public"]['Enums']["entry_status"],"total_count": number,"vendor": string
             }[]
                            },
 "set_engine_config":
@@ -829,6 +918,9 @@ isOneToOne: false
                            },
 "set_engine_mode":
 { Args: { "p_engine": string,"p_mode": string }; Returns: undefined
+                           },
+"set_entry_product":
+{ Args: { "p_entry_id": string,"p_product_id": string }; Returns: string
                            },
 "set_price":
 { Args: { "p_cache_read": number,"p_cache_write": number,"p_engine": string,"p_input": number,"p_model": string,"p_output": number,"p_per_search": number,"p_provider": string }; Returns: undefined
@@ -839,11 +931,17 @@ isOneToOne: false
 "set_user_role":
 { Args: { "p_role": Database["public"]['Enums']["hub_role"],"p_user_id": string }; Returns: undefined
                            },
+"set_vendor_alias":
+{ Args: { "p_alias": string,"p_vendor": string }; Returns: number
+                           },
 "submit_titles":
 { Args: { "p_client_id": string,"p_titles": Json }; Returns: Json
                            },
 "update_category":
 { Args: { "p_category_id": string,"p_description": string,"p_name": string,"p_reason": string }; Returns: number
+                           },
+"vendor_key":
+{ Args: { "p_vendor": string }; Returns: string
                            }
           }
           Enums: {

@@ -26,6 +26,11 @@ const COLUMNS: ServerColumnDef<EntryRow>[] = [
           {row.original.canonical_name}
         </Link>
         <span className="font-mono text-xs text-text-muted">{row.original.match_key}</span>
+        {row.original.aliases > 1 ? (
+          <span className="text-xs text-text-muted">
+            Product {row.original.product_name} · {row.original.aliases} spellings
+          </span>
+        ) : null}
       </div>
     ),
   },
@@ -85,13 +90,14 @@ export function DictionaryPage() {
   const [status, setStatus] = useState<DictionaryFilters["status"]>("");
   const [kind, setKind] = useState<DictionaryFilters["kind"]>("");
   const [categoryId, setCategoryId] = useState("");
+  const [group, setGroup] = useState(true);
   const categories = useLoad("categories", fetchCategories);
-  const filters = useMemo<DictionaryFilters>(() => ({ query, status, kind, categoryId }), [query, status, kind, categoryId]);
+  const filters = useMemo<DictionaryFilters>(() => ({ query, status, kind, categoryId, group }), [query, status, kind, categoryId, group]);
   const fetchPage = useCallback((r: ServerPageRequest<DictionaryFilters>) => searchEntries(r), []);
 
   return (
     <>
-      <PageHeader eyebrow="Dictionary" title="Dictionary" description="Every software title with its category, how it was decided and its revision." />
+      <PageHeader eyebrow="Dictionary" title="Dictionary" description="Every software title with its category, how it was decided and its revision. Spellings of one product share one classification." />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Field label="Search" htmlFor="dict-search" className="sm:col-span-2">
           <Input id="dict-search" type="search" placeholder="Name, vendor or match key" value={query} onChange={(e) => setQuery(e.target.value)} />
@@ -121,6 +127,10 @@ export function DictionaryPage() {
         <Field label="Category" htmlFor="dict-category" className="sm:col-span-2">
           <NativeSelect id="dict-category" value={categoryId} onChange={setCategoryId} options={[{ value: "", label: "Any category" }, ...level2Options(categories.data ?? [])]} />
         </Field>
+        <label className="flex items-center gap-2 self-end pb-2 text-sm sm:col-span-2">
+          <input type="checkbox" className="size-4 accent-action" checked={group} onChange={(e) => setGroup(e.target.checked)} />
+          One row per product (spellings with a version or architecture are grouped)
+        </label>
       </div>
       <ServerDataTable
         label="Dictionary entries"
