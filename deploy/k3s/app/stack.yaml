@@ -159,7 +159,7 @@ spec:
     spec:
       containers:
         - name: edge-runtime
-          image: ghcr.io/loardracoon/software-inventory-hub-functions:05b386521d3d5420a48a7357363820fab23fa6be
+          image: ghcr.io/loardracoon/software-inventory-hub-functions:56946111acf88440d71e31e2dfd752319ea9a670
           imagePullPolicy: IfNotPresent
           env:
             - { name: SUPABASE_URL, value: "http://kong:8000" }
@@ -221,7 +221,7 @@ spec:
     spec:
       containers:
         - name: nginx
-          image: ghcr.io/loardracoon/software-inventory-hub-web:05b386521d3d5420a48a7357363820fab23fa6be
+          image: ghcr.io/loardracoon/software-inventory-hub-web:56946111acf88440d71e31e2dfd752319ea9a670
           imagePullPolicy: IfNotPresent
           env:
             - { name: SUPABASE_URL, value: "https://hub.clau.sophizo.com.br" }
