@@ -86,6 +86,11 @@ export type DossierRow = {
     evidence: { claim: string; url: string }[];
     unknown: boolean;
     dropped_claims: number;
+    // Prompt version 2 (absent in older dossiers).
+    product_name?: string | null;
+    attention?: "info" | "review" | "not_allowed" | null;
+    cpe_vendor?: string | null;
+    cpe_product?: string | null;
   };
 };
 export type ResearchResult = { ok: boolean; error?: string; provider?: string; unknown?: boolean; sources?: number; dropped_claims?: number };

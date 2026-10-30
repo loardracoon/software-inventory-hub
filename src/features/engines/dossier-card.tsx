@@ -14,6 +14,7 @@ const CAPABILITY_LABEL: Record<string, string> = {
   credential_storage: "Credential storage",
   data_collection: "Data collection",
 };
+const ATTENTION_LABEL: Record<string, string> = { info: "Info", review: "Review", not_allowed: "Not allowed" };
 const TRIGGER_LABEL: Record<string, string> = {
   manual: "run by an admin",
   request: "client request",
@@ -80,8 +81,28 @@ export function DossierCard({ entryId, version }: { entryId: string; version: nu
             <dd className="m-0">
               <SourceLink url={d.store_url} />
             </dd>
+            {d.product_name ? (
+              <>
+                <dt className="text-text-muted">Product</dt>
+                <dd className="m-0">{d.product_name}</dd>
+              </>
+            ) : null}
             <dt className="text-text-muted">Suggested category</dt>
             <dd className="m-0">{d.suggested_category ?? "—"}</dd>
+            {d.attention ? (
+              <>
+                <dt className="text-text-muted">Suggested attention</dt>
+                <dd className="m-0">{ATTENTION_LABEL[d.attention] ?? d.attention}</dd>
+              </>
+            ) : null}
+            {d.cpe_vendor && d.cpe_product ? (
+              <>
+                <dt className="text-text-muted">NVD name (CPE)</dt>
+                <dd className="m-0 font-mono text-[13px]">
+                  {d.cpe_vendor}:{d.cpe_product}
+                </dd>
+              </>
+            ) : null}
             <dt className="text-text-muted">Capabilities</dt>
             <dd className="m-0">{d.capabilities.length ? d.capabilities.map((c) => CAPABILITY_LABEL[c] ?? c).join(", ") : "None found"}</dd>
           </dl>

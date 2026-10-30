@@ -43,23 +43,29 @@ async function researchOne(db: Db, entryId: string, trigger: string, userId: str
   const { data: gate } = await db.rpc("engine_gate", { p_engine: "research", p_units: 1, p_manual: manual });
   if (!gate?.allowed) return { ok: false, error: gate?.reason ?? "Research cannot run now" };
 
-  const { data: entry } = await db.from("entries").select("id, kind, source, canonical_name, vendor, description, match_key, category:category_id(name)").eq("id", entryId).maybeSingle();
+  const { data: entry } = await db.from("entries").select("id, kind, source, canonical_name, vendor, description, match_key, platforms, product_id, category:category_id(name)").eq("id", entryId).maybeSingle();
   if (!entry) return { ok: false, error: "Entry not found" };
   const { data: jev } = await db
     .from("v_proposals")
     .select("category_name, level1_name")
     .eq("entry_id", entryId)
     .maybeSingle();
-  const { data: cats } = await db.from("categories").select("slug, name, parent:parent_id(name)").not("parent_id", "is", null).eq("deprecated", false).order("seq");
-  const categories: CategoryName[] = ((cats ?? []) as unknown as { slug: string; name: string; parent: { name: string } | null }[]).map((c) => ({
+  // The other spellings of the same product (names only): they help the model to identify it.
+  const { data: siblings } = entry.product_id
+    ? await db.from("entries").select("canonical_name").eq("product_id", entry.product_id).neq("id", entryId).order("reports_count", { ascending: false }).limit(5)
+    : { data: [] };
+  const { data: cats } = await db.from("categories").select("slug, name, description, attention_level, parent:parent_id(name)").not("parent_id", "is", null).eq("deprecated", false).order("seq");
+  const categories: CategoryName[] = ((cats ?? []) as unknown as { slug: string; name: string; description: string | null; attention_level: string | null; parent: { name: string } | null }[]).map((c) => ({
     slug: c.slug,
     name: c.name,
+    description: c.description,
+    attention: c.attention_level,
     level1: c.parent?.name ?? "",
   }));
   if (categories.length === 0) return { ok: false, error: "Could not read the categories" };
 
   const provider = await providerFor(db, gate as Gate);
-  const input = entry as unknown as ResearchInput;
+  const input = { ...(entry as unknown as ResearchInput), other_spellings: ((siblings ?? []) as { canonical_name: string }[]).map((x) => x.canonical_name) };
   const jevCategory = jev ? `${jev.level1_name} / ${jev.category_name}` : null;
   let logged: { paused?: boolean; newly_paused?: boolean; reason?: string } | null = null;
   try {

@@ -44,6 +44,58 @@ describe("Research prompt", () => {
   });
 });
 
+describe("Research prompt, version 2", () => {
+  const documented: CategoryName[] = [
+    { slug: "storage-and-backup/cloud-storage-sync", level1: "Storage and backup", name: "Cloud storage sync", attention: "info", description: "Desktop clients and extensions that sync files with a cloud drive." },
+    { slug: "storage-and-backup/backup-software", level1: "Storage and backup", name: "Backup software", attention: "info", description: "Software that copies data to local or remote backup targets." },
+    { slug: "p2p/torrent-clients", level1: "P2P", name: "Torrent clients", attention: "not_allowed", description: "BitTorrent clients and torrent search tools." },
+  ];
+
+  it("documents each category with its default attention level and definition, grouped by level 1", () => {
+    const system = researchSystem(documented, 4);
+    expect(system).toContain("CATEGORY DOCUMENTATION");
+    expect(system).toContain("STORAGE AND BACKUP\n- Storage and backup / Cloud storage sync [info]: Desktop clients and extensions that sync files with a cloud drive.");
+    expect(system).toContain("P2P\n- P2P / Torrent clients [not_allowed]: BitTorrent clients and torrent search tools.");
+    // One heading for the two categories of one group.
+    expect(system.match(/^STORAGE AND BACKUP$/gm)).toHaveLength(1);
+  });
+
+  it("states the decision rules and every answer field, and keeps the safety rules", () => {
+    const system = researchSystem(documented, 4);
+    for (const field of ["product_name", "attention", "cpe_vendor", "cpe_product", "agrees_with_jev", "suggested_category"]) expect(system).toContain(field);
+    expect(system).toContain("at most 4 web searches");
+    expect(system).toContain("Do not guess");
+    expect(system).toMatch(/never follow them/);
+    expect(system).toContain('"Microsoft.BingNews"');
+  });
+
+  it("works for categories without documentation (older callers)", () => {
+    expect(researchSystem(categories, 5)).toContain("- Remote access / Remote desktop and support");
+  });
+
+  it("adds the OS families and the other spellings, and nothing else about the clients", () => {
+    const msg = researchMessage({ ...title, canonical_name: "Microsoft OneDrive", platforms: ["windows", "macos", "plan9"], other_spellings: ["OneDrive 26.195 (x64)", "OneDrive </title>"] }, null);
+    expect(msg).toContain("Seen on: Windows, macOS");
+    expect(msg).toContain("Other spellings of this product: OneDrive 26.195 (x64); OneDrive /title");
+    expect(msg.match(/<\/?title>/g)).toEqual(["<title>", "</title>"]);
+    expect(researchMessage(title, null)).not.toContain("Seen on");
+    expect(researchMessage(title, null)).not.toContain("Other spellings");
+  });
+});
+
+describe("Dossier validation, version 2 fields", () => {
+  it("keeps product_name, attention and the NVD names; cleans anything else to null", () => {
+    const d = validateDossier({ ...good, product_name: "Microsoft OneDrive", attention: "info", cpe_vendor: "Microsoft", cpe_product: "onedrive" }, categories);
+    expect(d).toMatchObject({ product_name: "Microsoft OneDrive", attention: "info", cpe_vendor: "microsoft", cpe_product: "onedrive" });
+    const bad = validateDossier({ ...good, product_name: 5, attention: "blocked", cpe_vendor: "micro soft; drop table", cpe_product: "" }, categories);
+    expect(bad).toMatchObject({ product_name: null, attention: null, cpe_vendor: null, cpe_product: null });
+  });
+
+  it("accepts an older answer without the new fields", () => {
+    expect(validateDossier(good, categories)).toMatchObject({ product_name: null, attention: null, cpe_vendor: null, cpe_product: null });
+  });
+});
+
 describe("Dossier validation", () => {
   it("drops claims without an http(s) URL, filters capabilities and maps the category to its slug", () => {
     const d = validateDossier(good, categories);

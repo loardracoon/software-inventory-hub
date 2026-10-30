@@ -229,6 +229,10 @@ export function mockResearch(): ResearchProvider {
       const dossier = {
         summary: `${name} is a ${remote ? "remote access tool that lets someone control this computer over the network" : "software title"}. (Mock dossier.)`,
         vendor: null,
+        product_name: name,
+        attention: remote ? "review" : "info",
+        cpe_vendor: null,
+        cpe_product: null,
         official_url: site,
         store_url: null,
         capabilities: remote ? ["remote_control", "screen_capture"] : [],
