@@ -24,6 +24,8 @@ Coexistence with Mailu: only port 18443 is published; Mailu's containers, config
 
 ## Rate limits and abuse protection
 
+Every variable is explained in [docs/rate-limits.md](../../docs/rate-limits.md). The text below is a short version.
+
 All limits are in one file: **`rate-limits.env`** (in this folder; on the server `/opt/dictionary-hub/rate-limits.env`). Docker Compose loads it into `kong` (the gateway), `auth` and `functions` (`env_file`, optional: without the file the image defaults apply, and Auth has no per-address limits). After a change: `docker compose up -d kong auth functions`. `tls.conf` adds a limit of 100 open connections per address and timeouts against slow clients. Values for a team of up to ~50 users behind one office address:
 
 | Setting | Recommended | What it limits |

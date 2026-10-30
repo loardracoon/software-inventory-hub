@@ -202,8 +202,23 @@ Day to day: `docker compose ps`, `docker compose logs -f kong functions`; change
 All limits are in one file per deployment: `deploy/compose/rate-limits.env` (one host), `deploy/vps/rate-limits.env`
 (next to a mail server) and `deploy/k3s/app/rate-limits.env` (K3S). They set the per-address limits of the gateway
 (sign-in, API, functions, connections, body size), the per-address limits of Auth, the emails per hour, the
-invitations per admin and the calls per client key. Each value and the recommended numbers:
-[deploy/vps/README.md › Rate limits and abuse protection](deploy/vps/README.md#rate-limits-and-abuse-protection).
+invitations per admin and the calls per client key.
+
+| What | Variables (file `rate-limits.env`) | Recommended |
+| --- | --- | --- |
+| Sign-in links and code checks, for each address | `RL_AUTH_STRICT_RATE`, `RL_AUTH_STRICT_BURST` | `10r/m`, `10` |
+| Other Auth calls, for each address | `RL_AUTH_RATE`, `RL_AUTH_BURST` | `120r/m`, `60` |
+| Database API, for each address | `RL_REST_RATE`, `RL_REST_BURST` | `30r/s`, `120` |
+| Edge Functions, for each address | `RL_FUNCTIONS_RATE`, `RL_FUNCTIONS_BURST` | `10r/s`, `60` |
+| Open connections, for each address | `RL_CONN_PER_IP` | `60` |
+| Largest request body | `RL_BODY_AUTH`, `RL_BODY_REST`, `RL_BODY_FUNCTIONS` | `64k`, `2m`, `10m` |
+| Auth limits for each address (needs the header) | `GOTRUE_RATE_LIMIT_HEADER` and `_OTP`, `_VERIFY`, `_TOKEN_REFRESH` | `X-Real-IP`, `10`, `15`, `60` (in 5 minutes) |
+| Emails from Auth, for the whole app | `GOTRUE_RATE_LIMIT_EMAIL_SENT` | `60` for each hour |
+| Invitations for each admin | `RL_INVITES_PER_HOUR` | `20` for each hour |
+| Calls for each client key | `RL_HUB_CLIENT_REQUESTS_PER_MINUTE` | `120` for each minute |
+
+The numbers are for a team of up to about 50 users behind one office address. Every variable, with the reason and
+when to change it, is in **[docs/rate-limits.md](docs/rate-limits.md)**.
 
 ## Security and privacy
 
@@ -218,7 +233,8 @@ invitations per admin and the calls per client key. Each value and the recommend
 
 | Document | Content |
 | --- | --- |
-| [deploy/vps/README.md](deploy/vps/README.md) | The reference production host, rate limits, jobs |
+| [docs/rate-limits.md](docs/rate-limits.md) | Each rate-limit variable: what it does, the recommended number, when to change it, how to check |
+| [deploy/vps/README.md](deploy/vps/README.md) | The reference production host, jobs |
 | [deploy/k3s/README.md](deploy/k3s/README.md) | Kubernetes (K3S) and Argo CD |
 | [docs/phases/README.md](docs/phases/README.md) | Build history and follow-ups |
 | [docs/phases/hub-H2-client-api.md](docs/phases/hub-H2-client-api.md) | The client API contract |
