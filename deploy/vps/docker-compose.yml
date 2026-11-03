@@ -1,5 +1,6 @@
 # Dictionary Hub on the VPS (/opt/dictionary-hub): self-hosted Supabase plus the console, published only on
-# HUB_PORT with TLS (the Let's Encrypt certificate Mailu keeps for mail.sophizo.com.br, mounted read-only).
+# HUB_PORT with TLS: mcs.sophizo.com.br through Cloudflare (origin certificate in ./certs), any other name with the
+# Let's Encrypt certificate Mailu keeps for mail.sophizo.com.br (mounted read-only).
 # Mailu is a separate Compose project; nothing here changes it. Magic links go out through Mailu's SMTP.
 # Values come from .env (chmod 600, never committed); HUB_TAG is moved by update.sh.
 name: dictionary-hub
@@ -24,8 +25,9 @@ services:
       JWT_EXP: "3600"
     volumes:
       - db-data:/var/lib/postgresql/data
-      # The Vault key: turn on only after step 1 of README › Keep the Vault key (the file must exist first).
-      # - ./pgsodium_root.key:/etc/postgresql-custom/pgsodium_root.key:ro
+      # The Vault key, saved with step 1 of README › Keep the Vault key (on since 2026-11-03). The file must exist
+      # before this line is used: without it Docker creates a folder with that name and the database does not start.
+      - ./pgsodium_root.key:/etc/postgresql-custom/pgsodium_root.key:ro
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres", "-h", "localhost"]
       interval: 5s

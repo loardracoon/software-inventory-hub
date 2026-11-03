@@ -87,6 +87,10 @@ below need this once.
 Step 1 alone already protects you: with the saved key, a lost container can be repaired. Never turn on step 2 before
 the file exists (Docker would create a folder with that name and the database would not start).
 
+**State on this host**: done on 2026-11-03. `/opt/dictionary-hub/pgsodium_root.key` (owner uid 100, chmod 600) is
+mounted, the database was recreated with it and all Vault secrets stayed readable. Copy this file off the host with
+`.env`; a database backup is useless for Vault without it.
+
 ## Jobs
 
 pg_cron runs `jev-auto` (hourly, :07), `research-tick` (hourly, :37) and `daily-digest` (11:00 UTC). They read the Vault secrets `jev_url` (`http://kong:8000/functions/v1/jev`) and `cron_secret` (`CRON_SECRET`), set on Oct 28, 2026. Jev and Research only act alone in automatic mode (Engines & usage).
