@@ -20,6 +20,7 @@ Client repository (the inventory app for Sophos Central): **<https://github.com/
 - [Day-to-day curation](#day-to-day-curation)
 - [Update, back up, uninstall](#update-back-up-uninstall)
 - [Rate limits and abuse protection](#rate-limits-and-abuse-protection)
+- [Data flow and AI processing](#data-flow-and-ai-processing)
 - [Security and privacy](#security-and-privacy)
 - [More documentation](#more-documentation)
 
@@ -28,8 +29,10 @@ Client repository (the inventory app for Sophos Central): **<https://github.com/
 - **Dictionary**: every title an Endpoint Inventory installation finds (program, browser extension, IDE extension,
   package) gets a category of a two-level taxonomy (29 groups, 71 categories, for example "Remote access / Remote
   desktop and support") and an attention level (Info, Review, Not allowed).
-- **Classification with AI**: *Jev* proposes a category for new titles (Claude, OpenAI or Gemini, your choice and
-  your key); *Research* looks up hard titles on the web. Curators accept, change or reject the proposals.
+- **Classification with AI** (optional): *Jev* proposes a category for new titles (Claude or OpenAI); *Research*
+  looks up hard titles on the web (Claude, Gemini, OpenAI or Grok). You choose the provider and model, with your own
+  key, or turn the engines off. Curators accept, change or reject the proposals. **Software metadata goes to the
+  provider you choose**: see [Data flow and AI processing](#data-flow-and-ai-processing).
 - **Products**: "7-Zip 23.01 (x64)" and "7-Zip 26.05 (x64)" are one product; the classification belongs to the
   product, and a new spelling of a known product is classified at once.
 - **Vulnerabilities**: each product is mapped to its NVD names (CPE) and its CVEs, with the affected version ranges
@@ -66,7 +69,7 @@ flowchart LR
     Console["Hub console (curators)"]
   end
   Sources["NVD, OSV, CVE records, CISA KEV, FIRST EPSS"]
-  AI["Claude, OpenAI or Gemini"]
+  AI["External AI provider you choose: Claude, OpenAI, Gemini or Grok"]
   A -- "client key" --> API
   B -- "client key" --> API
   API --> DB
@@ -166,7 +169,8 @@ minute (`RL_HUB_CLIENT_REQUESTS_PER_MINUTE`).
 
 What the installations send: the metadata of titles the Hub does not know (kind, source, match key, name, vendor,
 description) and the OS families where each title is installed. They never send hostnames, users, tenant names,
-installed versions, counts, or their policies; they compare their own versions with the CVE ranges.
+installed versions, counts, or their policies; they compare their own versions with the CVE ranges. The full list of
+fields is in [Data flow and AI processing](#data-flow-and-ai-processing).
 
 ## Day-to-day curation
 
@@ -219,6 +223,52 @@ invitations per admin and the calls per client key.
 
 The numbers are for a team of up to about 50 users behind one office address. Every variable, with the reason and
 when to change it, is in **[docs/rate-limits.md](docs/rate-limits.md)**.
+
+## Data flow and AI processing
+
+### What the Hub receives and stores
+
+From an Endpoint Inventory installation (its client key identifies it), the Hub receives only:
+
+- **Unknown titles**: `kind`, `source`, `match_key`, `name`, `vendor`, `description` (at most 1,000 characters) and the
+  OS families where the title is installed (`windows`, `macos`, `linux`).
+- **Reclassification requests**: the same title keys, a suggested category, a reason (at most 500 characters) and an
+  optional evidence URL.
+- Pull calls (`dictionary-changes`, `vulnerability-changes`, request status) carry only a sequence number or request IDs.
+
+The Hub never receives hostnames, usernames, tenant names, installed versions, install counts, or policies, so it can
+not send them anywhere. It does store the name and contact email that you enter for each client key.
+
+### Third-party AI processing
+
+**If you turn an AI engine on, the metadata of software titles is sent to the external provider you choose.** The
+Hub's engines are optional. Each one is set in **Engines & usage** (mode **Off**, **Manual** or **Automatic**,
+provider, model, daily limit and monthly budget), and each provider needs its own key in **Settings › AI providers**.
+
+| Engine | What it does | Providers you can choose | What is sent to the provider |
+| --- | --- | --- | --- |
+| **Jev** | Proposes a category for a new title | Claude (Anthropic), OpenAI | One title at a time: kind, source, name, vendor, description. The category list is in the instructions |
+| **Research** | Looks up a hard title on the web and writes a dossier with sources | Claude (Anthropic), Gemini (Google), OpenAI, Grok (xAI) | One title at a time: the same fields, plus the match key, the OS families and other spellings of the same product. The provider runs the web searches |
+
+- **Not sent to any provider**: anything about a computer, user, tenant or installation, the client keys, or the
+  provider keys of other engines. The title text is passed as data inside `<title>` tags, with instructions to ignore
+  any command it contains; a dossier never publishes by itself.
+- **Titles are what the installations found.** A name specific to a company (an internal tool) reaches the provider
+  too. Installations can turn their sharing off, and you can set an engine to **Off** to send nothing.
+- **Without a key** for the chosen provider, or with `JEV_PROVIDER=mock` / `RESEARCH_PROVIDER=mock`, a local mock
+  answers and nothing leaves the Hub. Use this for tests and demos.
+- **Check the provider's data terms** (retention, use for training, region) against your own rules before you turn an
+  engine on. They differ by provider and by plan. Pick a provider and plan that fit them.
+- The Gemini adapter of Research is verified against the live API. The OpenAI and Grok adapters of Research follow
+  the providers' public documentation and are not yet verified with live keys. Check a new provider with a small
+  batch first.
+
+### Other outbound calls of the Hub
+
+| Destination | Purpose | What is sent |
+| --- | --- | --- |
+| NVD, OSV.dev, CVE records, CISA KEV, FIRST EPSS | CVE data | Public product names (CPE vendor and product) and package names, CVE IDs. Optional NVD key in **Settings › Data sources** |
+| Resend (optional) | Digest and notice emails to the admins | Recipient and the email text; leave `RESEND_API_KEY` empty to send none |
 
 ## Security and privacy
 
