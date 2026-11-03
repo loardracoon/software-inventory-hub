@@ -3,7 +3,12 @@
 > This folder is the reference production host, next to an existing Mailu mail server. For a new install on one
 > host, use `deploy/compose` (one command; [README › Install](../../README.md#install)).
 
-`https://mail.sophizo.com.br:18443` — Docker Compose project `dictionary-hub` in `/opt/dictionary-hub`, beside the Mailu project in `/mailu`.
+`https://mcs.sophizo.com.br` — Docker Compose project `dictionary-hub` in `/opt/dictionary-hub`, beside the Mailu project in `/mailu` (Mailu keeps `mail.sophizo.com.br`).
+
+The name goes through Cloudflare (proxied record). A Cloudflare **Origin Rule** sends `mcs.sophizo.com.br` to port
+18443 of the VPS, and SSL mode is **Full (strict)**. The Hostinger firewall must allow TCP 18443 from Cloudflare's
+ranges. `PUBLIC_URL=https://mcs.sophizo.com.br` in `.env`. The old address `https://mail.sophizo.com.br:18443`
+still answers on the VPS, with Mailu's certificate, for clients that reach the IP directly.
 
 | Service | What it is |
 | --- | --- |
@@ -11,7 +16,7 @@
 | `auth`, `rest` | GoTrue and PostgREST; sign-ups off |
 | `functions` | `ghcr.io/loardracoon/software-inventory-hub-functions:<HUB_TAG>` |
 | `kong` | `ghcr.io/loardracoon/software-inventory-hub-web:<HUB_TAG>` — console + API gateway (same image as K3S; `/env.js` from `PUBLIC_URL`) |
-| `tls` | nginx on `HUB_PORT` (18443) with Mailu's Let's Encrypt certificate (`/mailu/certs/letsencrypt`, read-only), reloaded every 12 h to follow renewals; plain HTTP on that port is redirected to HTTPS |
+| `tls` | nginx on `HUB_PORT` (18443) with two names: `mcs.sophizo.com.br` with the Cloudflare Origin CA certificate (`./certs/mcs.pem` and `mcs.key`, chmod 600, never committed; valid until 2041), which takes the client address from `CF-Connecting-IP` only from Cloudflare's ranges; any other name with Mailu's Let's Encrypt certificate (`/mailu/certs/letsencrypt`, read-only), reloaded every 12 h to follow renewals. Plain HTTP on that port is redirected to HTTPS |
 | `smtp-relay` | socat answering as `mail.sophizo.com.br:465` on the Hub network and forwarding to Mailu's `front:465` on `mailu_default` (containers cannot reach the host's public IP); TLS stays end to end |
 | `migrate` | profile `tools`: `docker compose run --rm migrate` applies new migrations |
 
@@ -20,6 +25,7 @@ Coexistence with Mailu: only port 18443 is published; Mailu's containers, config
 ## Files
 
 - `docker-compose.yml`, `tls.conf`, `update.sh`, `rate-limits.env` from this folder; `mail.htpasswd` empty (no Mailpit here, `/mail/` refuses everyone).
+- `certs/mcs.pem`, `certs/mcs.key` (never committed): the Cloudflare origin certificate. When Cloudflare's IP ranges change (<https://www.cloudflare.com/ips/>), update the `set_real_ip_from` lines in `tls.conf`.
 - `.env` (chmod 600, never committed): `PUBLIC_URL`, `HUB_PORT`, `HUB_TAG`, `POSTGRES_PASSWORD`, `JWT_SECRET`, `ANON_KEY`, `SERVICE_ROLE_KEY`, `CRON_SECRET`, `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS`.
 
 ## Rate limits and abuse protection
