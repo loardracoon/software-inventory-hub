@@ -4,6 +4,7 @@ import { RequireAuth, RequireRole } from "@/features/auth/require-auth";
 import { ClientsPage } from "@/pages/clients-page";
 import { DictionaryPage } from "@/pages/dictionary-page";
 import { EnginesPage } from "@/pages/engines-page";
+import { EnrollConfirmPage } from "@/pages/enroll-confirm-page";
 import { EntryPage } from "@/pages/entry-page";
 import { InboxPage } from "@/pages/inbox-page";
 import { LoginPage } from "@/pages/login-page";
@@ -16,6 +17,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/enroll/confirm" element={<EnrollConfirmPage />} />
       <Route
         element={
           <RequireAuth>

@@ -95,14 +95,16 @@ export function ClientsPage() {
                   </TableCell>
                   <TableCell className="font-mono text-xs">{c.key_prefix}…</TableCell>
                   <TableCell>
-                    <Badge color={c.status === "active" ? "safe" : "slate"} soft>
-                      {c.status === "active" ? "Active" : "Revoked"}
+                    <Badge color={c.status === "active" ? "safe" : c.status === "pending" ? "info" : "slate"} soft>
+                      {c.status === "active" ? "Active" : c.status === "pending" ? "Waiting for approval" : "Revoked"}
                     </Badge>
                   </TableCell>
                   <TableCell>{c.last_seen_at ? formatDateTime(c.last_seen_at) : "Never"}</TableCell>
                   <TableCell>{formatNumber(c.last_seq)}</TableCell>
                   <TableCell>
                     <div className="flex justify-end gap-2">
+                      {c.status === "pending" ? <span className="text-xs text-text-muted">Decide in Inbox › Access requests</span> : null}
+                      {c.status === "pending" ? null : (
                       <Confirm
                         trigger={c.status === "active" ? "Rotate key" : "Reactivate with a new key"}
                         title={`New key for ${c.name}?`}
@@ -110,6 +112,7 @@ export function ClientsPage() {
                         confirm="Create new key"
                         onConfirm={() => void rotate(c)}
                       />
+                      )}
                       {c.status === "active" ? (
                         <Confirm
                           trigger="Revoke"

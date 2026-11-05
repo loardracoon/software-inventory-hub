@@ -447,3 +447,7 @@ verify_jwt = false
 
 [functions.vulnerability-changes]
 verify_jwt = false
+
+# Access requests of installations (phase H8): public; each action checks its own credential.
+[functions.client-enrollments]
+verify_jwt = false

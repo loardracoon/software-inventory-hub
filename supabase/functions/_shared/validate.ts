@@ -119,3 +119,53 @@ export async function sha256Hex(value: string): Promise<string> {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
   return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
+
+// Access request of an installation (client-enrollments, phase H8). The installation sends the SHA-256 of the key it
+// made (never the key), the first 11 characters of the key for display, and the version of the consent text.
+export const ENROLLMENT_FIELDS = ["action", "name", "organization", "contact_email", "reason", "key_hash", "key_prefix", "consent_version", "client_version"] as const;
+export type EnrollmentInput = {
+  name: string;
+  organization: string | null;
+  contact_email: string;
+  reason: string | null;
+  key_hash: string;
+  key_prefix: string;
+  consent_version: string;
+  client_version: string | null;
+};
+const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+// Control characters (line breaks included) would let requester text break the layout of the plain-text emails.
+const oneLine = (v: string) => v.replace(/[\u0000-\u001f\u007f]+/g, " ").trim();
+
+export function validateEnrollment(body: unknown): Result<EnrollmentInput> {
+  try {
+    if (!isObject(body)) throw new Error("Body must be a JSON object");
+    onlyFields(body, ENROLLMENT_FIELDS, "body");
+    const email = text(body.contact_email, "contact_email", 254, true)!.trim().toLowerCase();
+    if (!EMAIL.test(email)) throw new Error("contact_email is not an email address");
+    const keyHash = text(body.key_hash, "key_hash", 64, true)!;
+    if (!/^[0-9a-f]{64}$/.test(keyHash)) throw new Error("key_hash must be 64 lower-case hex characters (SHA-256)");
+    const keyPrefix = text(body.key_prefix, "key_prefix", 11, true)!;
+    if (!/^hubk_[0-9a-f]{6}$/.test(keyPrefix)) throw new Error("key_prefix must be the first 11 characters of the key");
+    const consent = text(body.consent_version, "consent_version", 40, true)!;
+    if (!/^[A-Za-z0-9._-]+$/.test(consent)) throw new Error("consent_version is not valid");
+    const organization = text(body.organization, "organization", 120, false);
+    const reason = text(body.reason, "reason", 500, false);
+    const clientVersion = text(body.client_version, "client_version", 60, false);
+    return {
+      ok: true,
+      value: {
+        name: oneLine(text(body.name, "name", 120, true)!),
+        organization: organization ? oneLine(organization) || null : null,
+        contact_email: email,
+        reason: reason ? oneLine(reason) || null : null,
+        key_hash: keyHash,
+        key_prefix: keyPrefix,
+        consent_version: consent,
+        client_version: clientVersion ? oneLine(clientVersion) || null : null,
+      },
+    };
+  } catch (e) {
+    return { ok: false, error: (e as Error).message };
+  }
+}

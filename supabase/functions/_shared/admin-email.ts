@@ -1,4 +1,4 @@
-// Plain-text email to every hub admin; best effort (the inbox notification is the record).
+// Plain-text email to every hub admin, or to one contact; best effort (the inbox notification is the record).
 // SMTP when SMTP_HOST is set (Mailu on the VPS, Mailpit locally), otherwise Resend when RESEND_API_KEY and
 // HUB_EMAIL_FROM are set, otherwise skipped. Never throws.
 
@@ -8,15 +8,25 @@ import { connectSmtp, sendSmtp, smtpConfigFromEnv } from "./smtp.ts";
 export type EmailResult = { sent: boolean; recipients: number; reason?: string };
 
 export async function emailAdmins(db: SupabaseClient, subject: string, text: string): Promise<EmailResult> {
+  if (!emailConfigured()) return { sent: false, recipients: 0, reason: "Email is not configured" };
+  const { data } = await db.rpc("hub_admin_emails");
+  const to = (data as string[] | null) ?? [];
+  if (to.length === 0) return { sent: false, recipients: 0, reason: "No hub admins" };
+  return await sendEmail(to, subject, text);
+}
+
+export function emailConfigured(): boolean {
+  const env = (name: string) => Deno.env.get(name);
+  return Boolean(smtpConfigFromEnv(env) || (env("RESEND_API_KEY") && env("HUB_EMAIL_FROM")));
+}
+
+// Plain text to the given addresses (hub admins, or the contact of an access request). Never throws.
+export async function sendEmail(to: string[], subject: string, text: string): Promise<EmailResult> {
   const env = (name: string) => Deno.env.get(name);
   const smtp = smtpConfigFromEnv(env);
   const resendKey = env("RESEND_API_KEY");
   const resendFrom = env("HUB_EMAIL_FROM");
   if (!smtp && !(resendKey && resendFrom)) return { sent: false, recipients: 0, reason: "Email is not configured" };
-
-  const { data } = await db.rpc("hub_admin_emails");
-  const to = (data as string[] | null) ?? [];
-  if (to.length === 0) return { sent: false, recipients: 0, reason: "No hub admins" };
   const fullSubject = `[Dictionary Hub] ${subject}`;
 
   try {
@@ -34,7 +44,7 @@ export async function emailAdmins(db: SupabaseClient, subject: string, text: str
   } catch (error) {
     // The message only: never the login or the server's full reply.
     const reason = (error as Error).message.slice(0, 200);
-    console.error(`Admin email failed: ${reason}`);
+    console.error(`Email failed: ${reason}`);
     return { sent: false, recipients: to.length, reason };
   }
 }

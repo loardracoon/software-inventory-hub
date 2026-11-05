@@ -82,6 +82,8 @@ server {
 
   location /functions/v1/ {
     limit_req zone=functions burst=${RL_FUNCTIONS_BURST} nodelay;
+    # The client address for per-address limits inside functions (access requests, phase H8).
+    proxy_set_header X-Real-IP $rl_client_ip;
     proxy_pass http://functions:9000/;
     proxy_read_timeout 180s;
     proxy_send_timeout 180s;

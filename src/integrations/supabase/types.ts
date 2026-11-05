@@ -181,6 +181,32 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"client_enrollments": {
+                  Row: {
+                    "auto_approved": boolean,"client_id": string | null,"client_version": string | null,"consent_version": string,"contact_email": string,"created_at": string,"decided_at": string | null,"decided_by": string | null,"decision_note": string | null,"expires_at": string,"id": string,"ip": string | null,"key_hash": string,"name": string,"organization": string | null,"reason": string | null,"status": Database["public"]['Enums']["enrollment_status"],"verified_at": string | null,"verify_expires_at": string | null,"verify_token_hash": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "auto_approved"?: boolean,"client_id"?: string | null,"client_version"?: string | null,"consent_version": string,"contact_email": string,"created_at"?: string,"decided_at"?: string | null,"decided_by"?: string | null,"decision_note"?: string | null,"expires_at"?: string,"id"?: string,"ip"?: string | null,"key_hash": string,"name": string,"organization"?: string | null,"reason"?: string | null,"status"?: Database["public"]['Enums']["enrollment_status"],"verified_at"?: string | null,"verify_expires_at"?: string | null,"verify_token_hash"?: string | null
+                  }
+                  Update: {
+                    "auto_approved"?: boolean,"client_id"?: string | null,"client_version"?: string | null,"consent_version"?: string,"contact_email"?: string,"created_at"?: string,"decided_at"?: string | null,"decided_by"?: string | null,"decision_note"?: string | null,"expires_at"?: string,"id"?: string,"ip"?: string | null,"key_hash"?: string,"name"?: string,"organization"?: string | null,"reason"?: string | null,"status"?: Database["public"]['Enums']["enrollment_status"],"verified_at"?: string | null,"verify_expires_at"?: string | null,"verify_token_hash"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "client_enrollments_client_id_fkey"
+      columns: ["client_id"]
+isOneToOne: false
+      referencedRelation: "client_names"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "client_enrollments_client_id_fkey"
+      columns: ["client_id"]
+isOneToOne: false
+      referencedRelation: "clients"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"client_rate": {
                   Row: {
                     "calls": number,"client_id": string,"minute": string
@@ -209,14 +235,14 @@ isOneToOne: false
                   ]
                 },"clients": {
                   Row: {
-                    "contact_email": string,"created_at": string,"id": string,"key_hash": string,"key_prefix": string,"last_seen_at": string | null,"last_seq": number,"name": string,"status": Database["public"]['Enums']["client_status"]
+                    "contact_email": string,"created_at": string,"id": string,"key_hash": string,"key_prefix": string,"last_seen_at": string | null,"last_seq": number,"name": string,"organization": string | null,"status": Database["public"]['Enums']["client_status"]
                   }
                   ComputedFields: never
                   Insert: {
-                    "contact_email": string,"created_at"?: string,"id"?: string,"key_hash": string,"key_prefix": string,"last_seen_at"?: string | null,"last_seq"?: number,"name": string,"status"?: Database["public"]['Enums']["client_status"]
+                    "contact_email": string,"created_at"?: string,"id"?: string,"key_hash": string,"key_prefix": string,"last_seen_at"?: string | null,"last_seq"?: number,"name": string,"organization"?: string | null,"status"?: Database["public"]['Enums']["client_status"]
                   }
                   Update: {
-                    "contact_email"?: string,"created_at"?: string,"id"?: string,"key_hash"?: string,"key_prefix"?: string,"last_seen_at"?: string | null,"last_seq"?: number,"name"?: string,"status"?: Database["public"]['Enums']["client_status"]
+                    "contact_email"?: string,"created_at"?: string,"id"?: string,"key_hash"?: string,"key_prefix"?: string,"last_seen_at"?: string | null,"last_seq"?: number,"name"?: string,"organization"?: string | null,"status"?: Database["public"]['Enums']["client_status"]
                   }
                   Relationships: [
                     
@@ -269,6 +295,20 @@ isOneToOne: false
                   }
                   Update: {
                     "alert_pct"?: number,"auto_publish_daily"?: number,"batch_size"?: number,"daily_titles"?: number,"engine"?: string,"interval_hours"?: number,"last_auto_run_at"?: string | null,"min_reports"?: number,"mode"?: string,"model"?: string,"monthly_budget_usd"?: number,"paused"?: boolean,"paused_at"?: string | null,"paused_reason"?: string | null,"per_run_searches"?: number,"provider"?: string,"timeout_seconds"?: number,"triggers"?: NonNullable<Json>,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"enrollment_settings": {
+                  Row: {
+                    "allowed_domains": (string)[],"auto_approve_domains": (string)[],"enabled": boolean,"id": number,"updated_at": string | null,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "allowed_domains"?: (string)[],"auto_approve_domains"?: (string)[],"enabled"?: boolean,"id"?: number,"updated_at"?: string | null,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "allowed_domains"?: (string)[],"auto_approve_domains"?: (string)[],"enabled"?: boolean,"id"?: number,"updated_at"?: string | null,"updated_by"?: string | null
                   }
                   Relationships: [
                     
@@ -963,7 +1003,7 @@ isOneToOne: false
 { Args: { "p_engine": string }; Returns: undefined
                            },
 "build_digest":
-{ Args: Record<PropertyKey, never>; Returns: Json
+{ Args: { "p_weekly"?: boolean }; Returns: Json
                            },
 "can_curate":
 { Args: Record<PropertyKey, never>; Returns: boolean
@@ -975,7 +1015,7 @@ isOneToOne: false
 { Args: { "p_provider": string }; Returns: undefined
                            },
 "client_call":
-{ Args: { "p_key_hash": string }; Returns: {
+{ Args: { "p_key_hash": string,"p_limit"?: number }; Returns: {
               "client_id": string,"client_name": string,"retry_after": number,"status": number
             }[]
                            },
@@ -1027,8 +1067,34 @@ isOneToOne: false
 "enqueue_research":
 { Args: { "p_entry_id": string,"p_trigger": string }; Returns: boolean
                            },
+"enrollment_cancel":
+{ Args: { "p_key_hash": string }; Returns: Json
+                           },
+"enrollment_confirm":
+{ Args: { "p_token_hash": string }; Returns: Json
+                           },
+"enrollment_create":
+{ Args: { "p": Json }; Returns: Json
+                           },
+"enrollment_decide":
+{ Args: { "p_approve": boolean,"p_id": string,"p_note"?: string }; Returns: Json
+                           },
+"enrollment_domain":
+{ Args: { "p_email": string }; Returns: string
+                           },
+"enrollment_status":
+{ Args: { "p_key_hash": string }; Returns: Json
+                           },
 "ensure_hub_member":
 { Args: { "p_email": string }; Returns: boolean
+                           },
+"expire_enrollments":
+{ Args: Record<PropertyKey, never>; Returns: number
+                           },
+"get_enrollment_settings":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "allowed_domains": (string)[],"auto_approve_domains": (string)[],"enabled": boolean,"updated_at": string
+            }[]
                            },
 "get_provider_key":
 { Args: { "p_provider": string }; Returns: string
@@ -1162,6 +1228,9 @@ isOneToOne: false
 "set_engine_mode":
 { Args: { "p_engine": string,"p_mode": string }; Returns: undefined
                            },
+"set_enrollment_settings":
+{ Args: { "p_allowed_domains": (string)[],"p_auto_approve_domains": (string)[],"p_enabled": boolean }; Returns: undefined
+                           },
 "set_entry_product":
 { Args: { "p_entry_id": string,"p_product_id": string }; Returns: string
                            },
@@ -1239,7 +1308,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "attention_level": "info"|"review"|"not_allowed","client_status": "active"|"revoked","cpe_status": "candidate"|"confirmed"|"rejected","entry_kind": "program"|"extension"|"ide_extension"|"package","entry_method": "rule"|"jev"|"jev_auto"|"manual","entry_status": "pending"|"proposed"|"published"|"deprecated","event_type": "published"|"reclassified"|"description_changed"|"deprecated"|"category_changed","hub_role": "admin"|"operator"|"viewer","request_status": "open"|"accepted"|"rejected"|"superseded","run_status": "running"|"finished"|"failed"|"cancelled"
+            "attention_level": "info"|"review"|"not_allowed","client_status": "active"|"revoked"|"pending","cpe_status": "candidate"|"confirmed"|"rejected","enrollment_status": "unverified"|"pending"|"approved"|"rejected"|"expired"|"cancelled","entry_kind": "program"|"extension"|"ide_extension"|"package","entry_method": "rule"|"jev"|"jev_auto"|"manual","entry_status": "pending"|"proposed"|"published"|"deprecated","event_type": "published"|"reclassified"|"description_changed"|"deprecated"|"category_changed","hub_role": "admin"|"operator"|"viewer","request_status": "open"|"accepted"|"rejected"|"superseded","run_status": "running"|"finished"|"failed"|"cancelled"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -1359,7 +1428,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "attention_level": ["info", "review", "not_allowed"],"client_status": ["active", "revoked"],"cpe_status": ["candidate", "confirmed", "rejected"],"entry_kind": ["program", "extension", "ide_extension", "package"],"entry_method": ["rule", "jev", "jev_auto", "manual"],"entry_status": ["pending", "proposed", "published", "deprecated"],"event_type": ["published", "reclassified", "description_changed", "deprecated", "category_changed"],"hub_role": ["admin", "operator", "viewer"],"request_status": ["open", "accepted", "rejected", "superseded"],"run_status": ["running", "finished", "failed", "cancelled"]
+            "attention_level": ["info", "review", "not_allowed"],"client_status": ["active", "revoked", "pending"],"cpe_status": ["candidate", "confirmed", "rejected"],"enrollment_status": ["unverified", "pending", "approved", "rejected", "expired", "cancelled"],"entry_kind": ["program", "extension", "ide_extension", "package"],"entry_method": ["rule", "jev", "jev_auto", "manual"],"entry_status": ["pending", "proposed", "published", "deprecated"],"event_type": ["published", "reclassified", "description_changed", "deprecated", "category_changed"],"hub_role": ["admin", "operator", "viewer"],"request_status": ["open", "accepted", "rejected", "superseded"],"run_status": ["running", "finished", "failed", "cancelled"]
           }
         }
 } as const

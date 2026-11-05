@@ -45,14 +45,14 @@ Client repository (the inventory app for Sophos Central): **<https://github.com/
 
 | Area | Features |
 | --- | --- |
-| Inbox | Reclassification requests from the installations, new titles, Jev proposals, grouping conflicts, CPE matches to confirm |
+| Inbox | Reclassification requests from the installations, new titles, Jev proposals, grouping conflicts, CPE matches to confirm, access requests of installations |
 | Dictionary | Products and their spellings, category and attention per product, revision history, move or split spellings, known vulnerabilities per product (CPEs, CVEs, KEV, EPSS, affected versions) |
 | Classification runs | What Jev and Research did, with the probabilities, the model and the cost |
 | Engines & usage | Jev and Research: mode (Off, Manual, Automatic), pause, provider and model, daily budget, cost this month |
 | Taxonomy | The categories, their attention level and the Sophos Firewall category they map to |
-| Clients | One key per Endpoint Inventory installation: create, rotate, revoke, last seen, sync position |
+| Clients | One key per Endpoint Inventory installation: create, rotate, revoke, last seen, sync position; keys that installations requested (Settings › Access requests: open or closed, allowed domains, automatic approval by domain) |
 | Settings | Users and access (admin, operator, viewer; email and domain rules), AI provider keys, Data sources (NVD key, status of the CVE sync) |
-| Email | Daily digest to the admins (new titles, open requests, new known exploited CVEs); notices for requests and engine pauses |
+| Email | Weekly digest to the admins on Mondays (new titles, access requests, reclassification requests, proposals, CPE matches), new known exploited CVEs every day; notices for reclassification requests and engine pauses |
 | Protection | Rate limits per address and per client key (one configuration file) |
 
 ## How it works
@@ -81,7 +81,8 @@ flowchart LR
 ```
 
 - Scheduled jobs (pg_cron) run Jev every hour (`:07`), Research every hour (`:37`), the CVE sync every hour (`:17`)
-  and the digest every day (11:00 UTC). Jev and Research act alone only in Automatic mode.
+  and the digest every day at 11:00 UTC (the weekly summary on Mondays, otherwise only new known exploited CVEs).
+  Jev and Research act alone only in Automatic mode.
 - Only the server side (Edge Functions) calls the AI providers and the vulnerability sources. Provider keys are kept
   encrypted in the database (Vault) and never reach the browser.
 - Built with React, TypeScript and Tailwind (Sophos Design System 2026 tokens) on self-hosted Supabase (Postgres 17,
@@ -164,6 +165,24 @@ Other ways to run it:
    connection**, then **Sync now**. The categories arrive at once, and the installation's unknown titles reach your
    **Inbox › New titles** (when its "Share unknown titles with the hub" switch is on).
 
+**Or let installations ask (access requests).** In **Settings › Access requests**, turn on "Take access requests
+from installations", and optionally limit the email domains and list the domains to approve automatically. An
+installation then asks from its own **Settings › Dictionary hub** (the client offers this for
+`https://mcs.sophizo.com.br` only), after its admin agrees that title metadata is sent to the Hub and processed by
+third-party AI models:
+
+1. The installation makes its client key and sends only the key's SHA-256 hash, the first characters of the key, a
+   name, an organization, a contact email and a reason. **The key never leaves the installation.**
+2. The contact gets an email and must press **Confirm** on the page it links to (24 hours). Opening the link alone
+   confirms nothing, so email security scanners cannot confirm a request.
+3. The request then waits in **Inbox › Access requests** (a notification, and the weekly digest), or is approved at
+   once when its domain is on the automatic list (at most 20 a day for each domain). **Approve** or **Reject** with a
+   note; the contact gets an email without any key. On approval the pending key starts to work and the installation
+   connects by itself.
+4. Until then the key reads nothing. Requests left open end after 14 days. Each address may send 3 requests an hour
+   and 10 a day, one email at most 3 a day, and at most 50 requests are open at a time. The answer to a request is
+   the same whether the address is new or already known.
+
 On the Clients page you see when each installation was last seen and how far it has synced. **Rotate key** gives a
 new key (the old one stops at once); **Revoke** stops a client and keeps its history. Each key may make 120 calls per
 minute (`RL_HUB_CLIENT_REQUESTS_PER_MINUTE`).
@@ -236,6 +255,10 @@ From an Endpoint Inventory installation (its client key identifies it), the Hub 
 - **Reclassification requests**: the same title keys, a suggested category, a reason (at most 500 characters) and an
   optional evidence URL.
 - Pull calls (`dictionary-changes`, `vulnerability-changes`, request status) carry only a sequence number or request IDs.
+- **Access requests** (only when Settings › Access requests is on): a name, an organization, a contact email and a
+  reason for the installation, the SHA-256 hash and first characters of the key it made, the version of the consent
+  text its admin agreed to, the client version, and the caller's IP address (for the per-address limit). Requests
+  are kept, with their decision, for the audit; the key itself never reaches the Hub.
 
 The Hub never receives hostnames, usernames, tenant names, installed versions, install counts, or policies, so it can
 not send them anywhere. It does store the name and contact email that you enter for each client key.

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseRequestIds, sha256Hex, validateRequest, validateTitles } from "./validate.ts";
+import { parseRequestIds, sha256Hex, validateEnrollment, validateRequest, validateTitles } from "./validate.ts";
 
 const title = { kind: "program", source: "programs", match_key: "anydesk|anydesk", name: "AnyDesk", vendor: "AnyDesk", description: null };
 
@@ -56,5 +56,45 @@ describe("parseRequestIds and sha256Hex", () => {
 
   it("hashes like Postgres sha256()", async () => {
     expect(await sha256Hex("abc")).toBe("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
+  });
+});
+
+describe("validateEnrollment", () => {
+  const ok = {
+    action: "create",
+    name: "ACME inventory",
+    organization: "ACME",
+    contact_email: "IT@Acme.example",
+    reason: "Classify our software",
+    key_hash: "a".repeat(64),
+    key_prefix: "hubk_0a1b2c",
+    consent_version: "2026-11-04",
+    client_version: "1.0",
+  };
+
+  it("accepts a request and normalises the email", () => {
+    const r = validateEnrollment(ok);
+    expect(r.ok && r.value.contact_email).toBe("it@acme.example");
+  });
+
+  it("never takes a key, only its hash, and nothing outside the contract", () => {
+    expect(validateEnrollment({ ...ok, key: "hubk_secret" })).toEqual({ ok: false, error: "body: fields not allowed: key" });
+    expect(validateEnrollment({ ...ok, hostname: "PC-01" }).ok).toBe(false);
+    expect(validateEnrollment({ ...ok, key_hash: "hubk_" + "a".repeat(59) }).ok).toBe(false);
+    expect(validateEnrollment({ ...ok, key_prefix: "hubk_secretvalue" }).ok).toBe(false);
+  });
+
+  it("checks the email, the consent version and the lengths", () => {
+    expect(validateEnrollment({ ...ok, contact_email: "not-an-email" }).ok).toBe(false);
+    expect(validateEnrollment({ ...ok, consent_version: "" }).ok).toBe(false);
+    expect(validateEnrollment({ ...ok, consent_version: "v1; drop" }).ok).toBe(false);
+    expect(validateEnrollment({ ...ok, name: "x".repeat(121) }).ok).toBe(false);
+    expect(validateEnrollment({ ...ok, reason: "x".repeat(501) }).ok).toBe(false);
+  });
+
+  it("puts requester text on one line (it goes into plain-text emails)", () => {
+    const r = validateEnrollment({ ...ok, name: "ACME\r\nBcc: someone@evil.example", reason: "a\n\nb" });
+    expect(r.ok && r.value.name).toBe("ACME Bcc: someone@evil.example");
+    expect(r.ok && r.value.reason).toBe("a b");
   });
 });

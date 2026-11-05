@@ -69,6 +69,23 @@ export function fromCron(req: Request): boolean {
   return secret.length >= 16 && req.headers.get("x-cron-secret") === secret;
 }
 
+// A client that acts as the signed-in console user (auth.uid() and RLS apply), for admin actions that record who did them.
+export function userClient(req: Request): SupabaseClient {
+  const token = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? "";
+  return createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: { headers: { Authorization: `Bearer ${token}` } },
+  });
+}
+
+// The caller's address: X-Real-IP from the gateway, else the last X-Forwarded-For hop (the one the gateway saw).
+export function callerIp(req: Request): string | null {
+  const real = req.headers.get("x-real-ip")?.trim();
+  if (real) return real.slice(0, 64);
+  const hops = (req.headers.get("x-forwarded-for") ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+  return hops.length ? hops[hops.length - 1].slice(0, 64) : null;
+}
+
 const MAX_BODY_BYTES = 2_000_000;
 
 export async function readJson(req: Request): Promise<unknown> {

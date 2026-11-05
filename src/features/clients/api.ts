@@ -7,7 +7,7 @@ export type ClientRow = {
   name: string;
   contact_email: string;
   key_prefix: string;
-  status: "active" | "revoked";
+  status: "active" | "revoked" | "pending";
   created_at: string;
   last_seen_at: string | null;
   last_seq: number;
