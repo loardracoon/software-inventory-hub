@@ -21,7 +21,7 @@ Client repository (the inventory app for Sophos Central): **<https://github.com/
 - [Update, back up, uninstall](#update-back-up-uninstall)
 - [Rate limits and abuse protection](#rate-limits-and-abuse-protection)
 - [Data flow and AI processing](#data-flow-and-ai-processing)
-- [Hosted test and demo environment](#hosted-test-and-demo-environment)
+- [Hosted instance](#hosted-instance)
 - [Security and privacy](#security-and-privacy)
 - [More documentation](#more-documentation)
 
@@ -271,9 +271,9 @@ provider, model, daily limit and monthly budget), and each provider needs its ow
 | NVD, OSV.dev, CVE records, CISA KEV, FIRST EPSS | CVE data | Public product names (CPE vendor and product) and package names, CVE IDs. Optional NVD key in **Settings › Data sources** |
 | Resend (optional) | Digest and notice emails to the admins | Recipient and the email text; leave `RESEND_API_KEY` empty to send none |
 
-## Hosted test and demo environment
+## Hosted instance
 
-The author hosts one instance of each app **for tests and demos**:
+The author runs one instance of each app, open to Sophos colleagues:
 
 | App | Address |
 | --- | --- |
@@ -283,13 +283,14 @@ The author hosts one instance of each app **for tests and demos**:
 - **Access:** anyone with a `@sophos.com` email can sign in (email link, no password) with **read-only** access
   (viewer). Ask the author for more access or for a client key.
 - **Hosting:** one VPS at **Hostinger in São Paulo, Brazil**. Both apps and their Postgres / Supabase backends are
-  self-hosted in Docker on that VPS (not Supabase Cloud), behind Cloudflare. There is no SLA.
-- **Use test or demo tenants only.** It is one shared instance: the dictionary is shared by design, so a title
-  classified on this Hub (its name, vendor and description) is visible to every connected installation, and the
-  AI engines of this Hub send title metadata to the provider set in **Engines & usage** (see
-  [Third-party AI processing](#third-party-ai-processing)).
-- For customer or production data, run both apps on your own infrastructure ([Install](#install)); then nothing
-  leaves your environment except the calls you configure.
+  self-hosted in Docker on that VPS (not Supabase Cloud), behind Cloudflare.
+- **No SLA is defined for <https://mcs.sophizo.com.br> or <https://inventory.sophizo.com.br>.** They are provided
+  as is, as a personal project: the author takes no responsibility for the data sent to or stored on them
+  (availability, loss or disclosure). Do not send data you are not allowed to share on these terms.
+- **Shared by design:** the Hub dictionary is shared, so a title classified on this Hub (its name, vendor and
+  description) is visible to every connected installation, and the Hub's AI engines send title metadata to the
+  provider set in **Engines & usage** (see [Third-party AI processing](#third-party-ai-processing)).
+- To keep all data in your own environment, run both apps on your own infrastructure ([Install](#install)).
 
 ## Security and privacy
 
