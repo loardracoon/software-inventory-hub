@@ -172,7 +172,8 @@ installation then asks from its own **Settings › Dictionary hub** (the client 
 third-party AI models:
 
 1. The installation makes its client key and sends only the key's SHA-256 hash, the first characters of the key, a
-   name, an organization, a contact email and a reason. **The key never leaves the installation.**
+   name, an organization, a contact email and a reason. **The key is never in the request or in an email**; like any
+   client key it later authenticates the installation's calls, and the Hub stores only its hash.
 2. The contact gets an email and must press **Confirm** on the page it links to (24 hours). Opening the link alone
    confirms nothing, so email security scanners cannot confirm a request.
 3. The request then waits in **Inbox › Access requests** (a notification, and the weekly digest), or is approved at
@@ -258,7 +259,7 @@ From an Endpoint Inventory installation (its client key identifies it), the Hub 
 - **Access requests** (only when Settings › Access requests is on): a name, an organization, a contact email and a
   reason for the installation, the SHA-256 hash and first characters of the key it made, the version of the consent
   text its admin agreed to, the client version, and the caller's IP address (for the per-address limit). Requests
-  are kept, with their decision, for the audit; the key itself never reaches the Hub.
+  are kept, with their decision, for the audit; the request never carries the key itself.
 
 The Hub never receives hostnames, usernames, tenant names, installed versions, install counts, or policies, so it can
 not send them anywhere. It does store the name and contact email that you enter for each client key.

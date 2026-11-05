@@ -1,6 +1,6 @@
 // Access requests from Endpoint Inventory installations (phase H8). Public (no JWT): each action checks its own
-// credential. The installation makes its client key and sends only the SHA-256 hash: the key never travels, and an
-// approval only switches that pending key to active.
+// credential. The installation makes its client key and sends only the SHA-256 hash: the key is never handed over
+// (not in the request, not in an email), and an approval only switches that pending key to active.
 //   POST { action: "create", name, organization, contact_email, reason, key_hash, key_prefix, consent_version,
 //          client_version } → 202 with the same answer whether the address is new or known; 403 domain not allowed,
 //          404 requests are closed, 429 too many from this address, 503 too many open requests
@@ -112,6 +112,6 @@ async function emailDecision(to: string, name: string, approved: boolean, note: 
       : `The access request of the Endpoint Inventory installation "${name}" was rejected.`,
     ...(note ? ["", `Note from the Hub admin: ${note}`] : []),
     "",
-    "The client key never left your installation and is not in this email.",
+    "The client key was made by your installation and is not in this email.",
   ].join("\n"));
 }
