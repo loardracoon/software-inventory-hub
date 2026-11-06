@@ -4,6 +4,7 @@ import { BookOpen } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { EmptyState } from "@/components/shared/empty-state";
+import { SearchSelect } from "@/components/shared/search-select";
 import { Field, NativeSelect } from "@/components/shared/filters";
 import { PageHeader } from "@/components/shared/page-header";
 import { ServerDataTable, type ServerColumnDef, type ServerPageRequest } from "@/components/shared/server-data-table";
@@ -125,7 +126,7 @@ export function DictionaryPage() {
           />
         </Field>
         <Field label="Category" htmlFor="dict-category" className="sm:col-span-2">
-          <NativeSelect id="dict-category" value={categoryId} onChange={setCategoryId} options={[{ value: "", label: "Any category" }, ...level2Options(categories.data ?? [])]} />
+          <SearchSelect id="dict-category" value={categoryId} onChange={setCategoryId} options={[{ value: "", label: "Any category" }, ...level2Options(categories.data ?? [])]} placeholder="Search categories" />
         </Field>
         <label className="flex items-center gap-2 self-end pb-2 text-sm sm:col-span-2">
           <input type="checkbox" className="size-4 accent-action" checked={group} onChange={(e) => setGroup(e.target.checked)} />

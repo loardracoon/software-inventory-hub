@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
+import { SearchSelect } from "@/components/shared/search-select";
 import { ErrorLine } from "@/components/shared/error-line";
 import { Eyebrow } from "@/components/shared/eyebrow";
 import { Field, NativeSelect } from "@/components/shared/filters";
@@ -272,7 +273,7 @@ function EditCard({ e, draft, options, onChanged }: { e: EntryDetail; draft: Dra
             <Input id="edit-vendor" value={form.vendor} maxLength={300} onChange={(ev) => set("vendor", ev.target.value)} />
           </Field>
           <Field label="Category" htmlFor="edit-category">
-            <NativeSelect id="edit-category" value={form.categoryId} onChange={(v) => set("categoryId", v)} options={[{ value: "", label: "Choose a category" }, ...options]} />
+            <SearchSelect id="edit-category" value={form.categoryId} onChange={(v) => set("categoryId", v)} options={[{ value: "", label: "Choose a category" }, ...options]} placeholder="Search categories" />
           </Field>
           <Field label="Attention" htmlFor="edit-attention">
             <NativeSelect

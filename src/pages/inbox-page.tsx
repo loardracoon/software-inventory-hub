@@ -17,6 +17,7 @@ import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/shared/empty-state";
+import { SearchSelect } from "@/components/shared/search-select";
 import { ErrorLine } from "@/components/shared/error-line";
 import { PageHeader } from "@/components/shared/page-header";
 import { fetchRequestGroups } from "@/features/dictionary/api";
@@ -299,21 +300,18 @@ function ProposalRow({
           <label className="sr-only" htmlFor={`change-${p.entry_id}`}>
             Change category of {p.canonical_name}
           </label>
-          <select
-            id={`change-${p.entry_id}`}
-            className="h-9 max-w-56 rounded-sm border-[1.5px] border-input bg-surface-raised px-2 text-[13px]"
-            value={other}
-            onChange={(e) => setOther(e.target.value)}
-          >
-            <option value="">Change category…</option>
-            {categories
-              .filter((c) => c.id !== p.category_id)
-              .map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.parent?.name} / {c.name}
-                </option>
-              ))}
-          </select>
+          <div className="w-56">
+            <SearchSelect
+              id={`change-${p.entry_id}`}
+              value={other}
+              onChange={setOther}
+              placeholder="Search categories"
+              options={[
+                { value: "", label: "Change category…" },
+                ...categories.filter((c) => c.id !== p.category_id).map((c) => ({ value: c.id, label: `${c.parent?.name} / ${c.name}` })),
+              ]}
+            />
+          </div>
           {other ? (
             <Button size="sm" variant="secondary" onClick={() => void act(true, other)} disabled={busy}>
               Publish with this

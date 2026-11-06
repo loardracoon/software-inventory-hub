@@ -8,7 +8,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorLine } from "@/components/shared/error-line";
-import { Field, NativeSelect } from "@/components/shared/filters";
+import { SearchSelect } from "@/components/shared/search-select";
+import { Field } from "@/components/shared/filters";
 import { PageHeader } from "@/components/shared/page-header";
 import { deprecateCategory, fetchCategories, level2Options, updateCategory, type CategoryRow } from "@/features/dictionary/api";
 import { AttentionBadge } from "@/features/jev/jev-bits";
@@ -157,7 +158,7 @@ function CategoryForm({ editing, options, onDone }: { editing: Editing; options:
         </>
       ) : (
         <Field label="Replacement category" htmlFor="cat-replacement">
-          <NativeSelect id="cat-replacement" value={replacement} onChange={setReplacement} options={[{ value: "", label: "Choose a category" }, ...options]} />
+          <SearchSelect id="cat-replacement" value={replacement} onChange={setReplacement} options={[{ value: "", label: "Choose a category" }, ...options]} placeholder="Search categories" />
         </Field>
       )}
       <Field label="Change reason (required)" htmlFor="cat-reason">
