@@ -23,3 +23,11 @@ supabase/.temp
 Thumbs.db
 *.log
 
+
+# Secrets and private material never go in git (gitleaks also scans: .gitleaks.toml)
+*.pem
+*.key
+*.crt
+certs/
+.lgpd/
+.superpowers/
